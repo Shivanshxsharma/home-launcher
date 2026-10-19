@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Face of a Favorites card: the still with the title set like key art. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:layout_height="157.5dp"
+    tools:layout_width="280dp"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <ImageView
+        android:id="@+id/card_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:id="@+id/card_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="13dp"
+        android:layout_marginEnd="13dp"
+        android:layout_marginBottom="13dp"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:textColor="#FFFFFFFF" />
+</merge>

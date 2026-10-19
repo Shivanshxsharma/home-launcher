@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Apps page: every app on the box as a grid of the same icons as the home row. The grid starts
+  right under the tab bar so focus glows are never cut off; cards that scroll up dissolve under a
+  soft band behind the header instead of being sliced at an edge.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/page_apps"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:alpha="0"
+    android:forceHasOverlappingRendering="false"
+    android:visibility="invisible">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/apps_grid"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="52dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingStart="56dp"
+        android:paddingTop="56dp"
+        android:paddingEnd="56dp"
+        android:paddingBottom="40dp"
+        android:scrollbars="none" />
+
+    <View
+        android:id="@+id/apps_fade"
+        android:layout_width="match_parent"
+        android:layout_height="98dp" />
+
+    <LinearLayout
+        style="@style/RowHeader"
+        android:layout_marginTop="68dp">
+
+        <TextView
+            style="@style/RowTitle"
+            android:text="@string/page_apps" />
+
+        <TextView
+            android:id="@+id/page_apps_count"
+            style="@style/RowSubtitle" />
+    </LinearLayout>
+</FrameLayout>

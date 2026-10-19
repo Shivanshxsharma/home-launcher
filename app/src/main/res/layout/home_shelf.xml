@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The top shelf: what the focused app has for you. Shown only on the apps row; the inner body
+  crossfades when focus moves between apps.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/shelf"
+    android:layout_width="550dp"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="56dp"
+    android:layout_marginTop="150dp"
+    android:alpha="0"
+    android:forceHasOverlappingRendering="false"
+    android:visibility="invisible">
+
+    <LinearLayout
+        android:id="@+id/shelf_body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:forceHasOverlappingRendering="false"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/shelf_label"
+            style="@style/TagText"
+            android:fontFamily="@font/geist_semibold"
+            android:textColor="@color/text_label" />
+
+        <TextView
+            android:id="@+id/shelf_title"
+            android:layout_width="550dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textColor="@color/ink" />
+
+        <TextView
+            android:id="@+id/shelf_line"
+            android:layout_width="550dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/geist_regular"
+            android:maxLines="1"
+            android:textColor="@color/text_soft"
+            android:textSize="12.5dp" />
+    </LinearLayout>
+</FrameLayout>

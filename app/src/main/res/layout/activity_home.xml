@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Built on the 1920x1080 mockup: 1dp here = 2 mockup px (the box runs at 960x540dp).
+  Bottom to top: the preview video (a SurfaceView, composited by the hardware under the window),
+  the backdrop art that fades away to reveal it, static scrims, a dim veil, the scrolling
+  content, the top chrome and the preview chip.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipChildren="false"
+    tools:background="@color/night">
+
+    <SurfaceView
+        android:id="@+id/preview_surface"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <FrameLayout
+        android:id="@+id/backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:forceHasOverlappingRendering="false">
+
+        <com.shivansh.mibox.ui.BackdropSlot
+            android:id="@+id/slot_lower"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="invisible" />
+
+        <com.shivansh.mibox.ui.BackdropSlot
+            android:id="@+id/slot_upper"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="invisible" />
+    </FrameLayout>
+
+    <View
+        android:id="@+id/scrim_left"
+        android:layout_width="576dp"
+        android:layout_height="match_parent"
+        android:forceHasOverlappingRendering="false" />
+
+    <View
+        android:id="@+id/scrim_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="270dp"
+        android:layout_gravity="bottom"
+        android:forceHasOverlappingRendering="false" />
+
+    <View
+        android:id="@+id/scrim_top"
+        android:layout_width="match_parent"
+        android:layout_height="97dp"
+        android:forceHasOverlappingRendering="false" />
+
+    <View
+        android:id="@+id/dim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:background="@color/night"
+        android:forceHasOverlappingRendering="false"
+        android:visibility="invisible" />
+
+    <!-- Everything below the chrome; springs up by translationY as you go down the rows. -->
+    <FrameLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="1230dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:forceHasOverlappingRendering="false">
+
+        <include layout="@layout/home_hero" />
+
+        <include layout="@layout/home_shelf" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/row_apps"
+            style="@style/Row"
+            android:layout_height="122dp"
+            android:layout_marginTop="390dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/row_up_next"
+            style="@style/Row"
+            android:layout_height="157dp"
+            android:layout_marginTop="574dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/row_my_shows"
+            style="@style/Row"
+            android:layout_height="196dp"
+            android:layout_marginTop="794dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/row_favorites"
+            style="@style/Row"
+            android:layout_height="179.5dp"
+            android:layout_marginTop="1044dp" />
+
+        <!-- Row titles come after the rows, so a lifted card's shadow passes under them. -->
+        <LinearLayout
+            style="@style/RowHeader"
+            android:layout_marginTop="545dp">
+
+            <TextView
+                style="@style/RowTitle"
+                android:text="@string/row_up_next" />
+
+            <TextView
+                style="@style/RowSubtitle"
+                android:text="@string/row_up_next_sub" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/RowHeader"
+            android:layout_marginTop="761dp">
+
+            <TextView
+                style="@style/RowTitle"
+                android:text="@string/row_my_shows" />
+
+            <TextView
+                style="@style/RowSubtitle"
+                android:text="@string/row_my_shows_sub" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/RowHeader"
+            android:layout_marginTop="1015dp">
+
+            <TextView
+                style="@style/RowTitle"
+                android:text="@string/row_favorites" />
+
+            <TextView
+                style="@style/RowSubtitle"
+                android:text="@string/row_favorites_sub" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- The other tabs' pages, shown in place of the home content. -->
+    <include layout="@layout/page_apps" />
+
+    <include layout="@layout/page_soon" />
+
+    <include layout="@layout/home_chrome" />
+
+    <LinearLayout
+        android:id="@+id/preview_chip"
+        android:layout_width="wrap_content"
+        android:layout_height="24dp"
+        android:layout_gravity="end"
+        android:layout_marginTop="350dp"
+        android:layout_marginEnd="56dp"
+        android:alpha="0"
+        android:forceHasOverlappingRendering="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="9dp"
+        android:paddingEnd="11dp"
+        android:visibility="invisible">
+
+        <ImageView
+            android:layout_width="11dp"
+            android:layout_height="11dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_muted" />
+
+        <TextView
+            android:id="@+id/preview_chip_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:fontFamily="@font/geist_medium"
+            android:includeFontPadding="false"
+            android:text="@string/preview_muted"
+            android:textColor="@color/text_soft"
+            android:textSize="9.5dp" />
+    </LinearLayout>
+</FrameLayout>

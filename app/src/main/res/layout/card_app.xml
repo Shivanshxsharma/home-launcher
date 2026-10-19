@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Face of an app icon, tvOS style: the app's TV banner edge to edge, or one big icon or glyph
+  centered on a tinted face. The name shows below the icon only while it has focus.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:layout_height="93dp"
+    tools:layout_width="155dp"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <ImageView
+        android:id="@+id/app_banner"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no" />
+
+    <ImageView
+        android:id="@+id/app_icon"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="center"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
+</merge>

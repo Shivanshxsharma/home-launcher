@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Home" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <!-- Dark from the first frame; removed once the backdrop covers the screen. -->
+        <item name="android:windowBackground">@color/night</item>
+        <item name="android:colorBackground">@color/night</item>
+        <item name="android:colorAccent">@color/ink</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowShowWallpaper">false</item>
+        <!-- Cards draw their own focus; no system highlight on top. -->
+        <item name="android:defaultFocusHighlightEnabled">false</item>
+    </style>
+
+    <style name="NavItem">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">24dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">11dp</item>
+        <item name="android:paddingEnd">11dp</item>
+        <item name="android:textSize">11dp</item>
+        <item name="android:fontFamily">@font/geist_medium</item>
+        <item name="android:textColor">@color/text_soft</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="RowTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">15dp</item>
+        <item name="android:fontFamily">@font/geist_semibold</item>
+        <item name="android:letterSpacing">-0.01</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@color/ink</item>
+    </style>
+
+    <style name="RowSubtitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">9dp</item>
+        <item name="android:textSize">10dp</item>
+        <item name="android:fontFamily">@font/geist_regular</item>
+        <item name="android:textColor">@color/text_quiet</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="RowHeader">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">57dp</item>
+        <item name="android:forceHasOverlappingRendering">false</item>
+    </style>
+
+    <style name="Row">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:paddingStart">56dp</item>
+        <item name="android:paddingEnd">56dp</item>
+        <item name="android:clipChildren">false</item>
+        <item name="android:clipToPadding">false</item>
+        <item name="android:overScrollMode">never</item>
+        <item name="android:scrollbars">none</item>
+    </style>
+
+    <style name="MetaText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">11dp</item>
+        <item name="android:fontFamily">@font/geist_regular</item>
+        <item name="android:textColor">@color/text_meta</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="MetaText.Separator">
+        <item name="android:layout_marginStart">6dp</item>
+        <item name="android:layout_marginEnd">6dp</item>
+        <item name="android:text">·</item>
+        <item name="android:textColor">@color/separator</item>
+    </style>
+
+    <style name="TagText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">9dp</item>
+        <item name="android:letterSpacing">0.16</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+</resources>

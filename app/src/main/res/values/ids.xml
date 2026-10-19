@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Which image request a view is waiting for, so a recycled view ignores stale results. -->
+    <item name="load_key" type="id" />
+    <!-- The running translationY animator of a view, so a newer one can cancel it. -->
+    <item name="glide_animator" type="id" />
+</resources>

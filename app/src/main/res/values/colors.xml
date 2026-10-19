@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="night">#FF050507</color>
+    <color name="ink">#FFF5F3EE</color>
+    <color name="ink_dark">#FF0A0A0C</color>
+    <color name="card">#FF121216</color>
+    <color name="text_soft">#FFE2DFE7</color>
+    <color name="text_meta">#FFDCD8E2</color>
+    <color name="text_label">#FFD9D5DF</color>
+    <color name="text_quiet">#FFB4B0BB</color>
+    <color name="hairline">#59FFFFFF</color>
+    <color name="separator">#66FFFFFF</color>
+</resources>

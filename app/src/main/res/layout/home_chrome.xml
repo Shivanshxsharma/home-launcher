@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A centered glass tab bar, tvOS style, with the time and profile quietly at the right. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/chrome"
+    android:layout_width="match_parent"
+    android:layout_height="30dp"
+    android:layout_marginTop="22dp"
+    android:forceHasOverlappingRendering="false">
+
+    <com.shivansh.mibox.ui.TabBar
+        android:id="@+id/tabs"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/nav_glass"
+        android:forceHasOverlappingRendering="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="3dp">
+
+        <FrameLayout
+            android:layout_width="32dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/search">
+
+            <ImageView
+                android:layout_width="11dp"
+                android:layout_height="11dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_search" />
+        </FrameLayout>
+
+        <TextView
+            style="@style/NavItem"
+            android:text="@string/nav_home" />
+
+        <TextView
+            style="@style/NavItem"
+            android:text="@string/nav_shows" />
+
+        <TextView
+            style="@style/NavItem"
+            android:text="@string/nav_movies" />
+
+        <TextView
+            style="@style/NavItem"
+            android:text="@string/nav_apps" />
+
+        <TextView
+            style="@style/NavItem"
+            android:text="@string/nav_library" />
+    </com.shivansh.mibox.ui.TabBar>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:layout_marginEnd="56dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextClock
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/geist_medium"
+            android:fontFeatureSettings="tnum"
+            android:format12Hour="h:mm"
+            android:format24Hour="HH:mm"
+            android:includeFontPadding="false"
+            android:textColor="@color/text_soft"
+            android:textSize="12dp" />
+
+        <TextView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/profile_circle"
+            android:fontFamily="@font/geist_semibold"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:text="@string/profile_initial"
+            android:textColor="@color/ink"
+            android:textSize="10.5dp" />
+    </LinearLayout>
+</FrameLayout>
