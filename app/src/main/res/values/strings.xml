@@ -64,7 +64,7 @@
     <string name="media_empty_signed_out">Sign in on the Library tab and your watchlist shows up here.</string>
     <string name="media_empty_shows">Nothing here yet. Hold OK on any show and choose Add to My Shows.</string>
     <string name="media_empty_movies">Nothing here yet. Hold OK on any film and choose Add to Watchlist.</string>
-    <string name="media_offline">Can\'t reach TMDB right now.</string>
+    <string name="media_offline">Can\'t reach TMDB. If you haven\'t yet, connect it on the Library tab.</string>
     <string name="hint_open">Open</string>
     <string name="hint_hold_ok">Hold OK</string>
     <string name="hint_options">Options</string>
@@ -106,5 +106,26 @@
     <string name="home_row">Home</string>
     <string name="apps_key_label">Home Launcher: Apps button</string>
     <string name="apps_key_description">Lets the remote\'s Apps button open the Home Launcher\'s Apps tab. It listens for that one button only and reads nothing on screen.</string>
+    <string name="connect_tag">Set up</string>
+    <string name="connect_title">Connect TMDB</string>
+    <string name="connect_line">Shows, films, artwork and trailers come from TMDB, which is free. This TV needs your own TMDB API key, and you can add it from your phone.</string>
+    <string name="connect_line_replace">A new key replaces the one this TV uses now. Press Back to keep the current key.</string>
+    <string name="connect_steps">1. Scan the code with a phone on the same Wi-Fi as this TV.\n2. On the page that opens, follow the link to get a free key, then paste it in.\n3. That\'s it. The TV checks the key with TMDB and connects.</string>
+    <string name="connect_starting">Getting the code ready…</string>
+    <string name="connect_waiting">Waiting for your phone…</string>
+    <string name="connect_checking">Checking the key with TMDB…</string>
+    <string name="connect_done">Connected to TMDB</string>
+    <string name="connect_refused">TMDB didn\'t accept that key. Try again on your phone…</string>
+    <string name="connect_offline">Couldn\'t reach TMDB to check the key. Try again on your phone…</string>
+    <string name="connect_no_network">This TV isn\'t on a network yet. Trying again…</string>
+    <string name="connect_or_open">or open %1$s</string>
+    <string name="connect_note">Connected to TMDB. Loading shows…</string>
+    <string name="connect_refused_note">TMDB didn\'t accept the key. Connect a new one on the Library tab.</string>
+    <string name="tmdb_menu_title">TMDB</string>
+    <string name="tmdb_change_key">Use a different TMDB key</string>
+    <string name="tmdb_sign_out">Sign out of TMDB</string>
+    <string name="tmdb_signed_out">Signed out of TMDB</string>
+    <string name="tmdb_using_your_key">Connected with your key</string>
+    <string name="tmdb_using_built_in_key">Using this build\'s key</string>
     <string name="tmdb_notice">This product uses the TMDB API but is not endorsed or certified by TMDB.</string>
 </resources>

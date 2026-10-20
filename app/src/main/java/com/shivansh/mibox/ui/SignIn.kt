@@ -3,7 +3,6 @@ package com.shivansh.mibox.ui
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.res.ColorStateList
-import android.graphics.Bitmap
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
@@ -11,10 +10,6 @@ import android.os.SystemClock
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.EncodeHintType
-import com.google.zxing.qrcode.QRCodeWriter
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.shivansh.mibox.R
 import com.shivansh.mibox.data.tmdb.Auth
 import com.shivansh.mibox.data.tmdb.Tmdb
@@ -67,7 +62,7 @@ class SignIn(root: View, private val auth: Auth, private val onSignedIn: (userna
         Workers.apps.execute {
             val result = runCatching {
                 val t = auth.newToken()
-                t to qrCode(auth.approvalUrl(t))
+                t to Qr.code(auth.approvalUrl(t))
             }
             main.post {
                 if (gen != generation) return@post
@@ -139,15 +134,6 @@ class SignIn(root: View, private val auth: Auth, private val onSignedIn: (userna
     private fun say(text: Int, dotColor: Int) {
         status.setText(text)
         dot.backgroundTintList = ColorStateList.valueOf(dotColor)
-    }
-
-    /** Dark modules on white, drawn at its on-screen size so it stays crisp. */
-    private fun qrCode(text: String): Bitmap {
-        val size = Ui.px(264)
-        val hints = mapOf(EncodeHintType.MARGIN to 0, EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.M)
-        val matrix = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, size, size, hints)
-        val pixels = IntArray(size * size) { i -> if (matrix[i % size, i / size]) 0xFF0A0A0C.toInt() else 0xFFFFFFFF.toInt() }
-        return Bitmap.createBitmap(pixels, size, size, Bitmap.Config.RGB_565)
     }
 
     private companion object {

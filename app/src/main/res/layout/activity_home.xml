@@ -234,6 +234,8 @@
 
     <include layout="@layout/page_signin" />
 
+    <include layout="@layout/page_connect" />
+
     <include layout="@layout/home_chrome" />
 
     <LinearLayout

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Connect TMDB, on the Library tab until the TV has a key: scan the code, paste the key on the
+  phone. The address under the code is for anyone who'd rather type it.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/page_connect"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="56dp"
+    android:layout_marginTop="140dp"
+    android:alpha="0"
+    android:forceHasOverlappingRendering="false"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:visibility="invisible">
+
+    <LinearLayout
+        android:layout_width="440dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/TagText"
+            android:fontFamily="@font/geist_semibold"
+            android:text="@string/connect_tag"
+            android:textColor="@color/text_label" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/geist_semibold"
+            android:includeFontPadding="false"
+            android:letterSpacing="-0.03"
+            android:text="@string/connect_title"
+            android:textColor="@color/ink"
+            android:textSize="36dp" />
+
+        <TextView
+            android:id="@+id/connect_line"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/geist_regular"
+            android:lineHeight="18dp"
+            android:textColor="@color/text_label"
+            android:textSize="12.5dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/geist_regular"
+            android:lineHeight="18dp"
+            android:text="@string/connect_steps"
+            android:textColor="@color/text_soft"
+            android:textSize="12dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/connect_dot"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:background="@drawable/dot"
+                android:backgroundTint="@color/text_quiet" />
+
+            <TextView
+                android:id="@+id/connect_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="@font/geist_medium"
+                android:includeFontPadding="false"
+                android:textColor="@color/ink"
+                android:textSize="12dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:fontFamily="@font/geist_regular"
+            android:text="@string/tmdb_notice"
+            android:textColor="@color/text_quiet"
+            android:textSize="9dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="60dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:id="@+id/connect_qr_card"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:padding="9dp">
+
+            <ImageView
+                android:id="@+id/connect_qr"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/connect_title"
+                android:scaleType="fitXY" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/connect_url"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/geist_medium"
+            android:includeFontPadding="false"
+            android:textColor="@color/text_quiet"
+            android:textSize="9dp" />
+    </LinearLayout>
+</LinearLayout>

@@ -36,6 +36,7 @@ import com.shivansh.mibox.data.MediaShelf
 import com.shivansh.mibox.data.MediaType
 import com.shivansh.mibox.data.Row
 import com.shivansh.mibox.data.tmdb.Account
+import com.shivansh.mibox.data.tmdb.ApiKey
 import com.shivansh.mibox.data.tmdb.Auth
 import com.shivansh.mibox.data.tmdb.Catalog
 import com.shivansh.mibox.data.tmdb.Lists
@@ -46,6 +47,7 @@ import com.shivansh.mibox.data.Show
 import com.shivansh.mibox.ui.AppArtSource
 import com.shivansh.mibox.ui.Backdrop
 import com.shivansh.mibox.ui.Cards
+import com.shivansh.mibox.ui.Connect
 import com.shivansh.mibox.ui.ContextMenu
 import com.shivansh.mibox.ui.FocusCard
 import com.shivansh.mibox.ui.Fonts
@@ -107,6 +109,19 @@ class HomeActivity : Activity(), Previews.Listener {
     private lateinit var pageSearch: View
     private lateinit var searchPage: SearchPage
     private lateinit var pageSignin: View
+    private lateinit var pageConnect: View
+    private lateinit var connect: Connect
+    private lateinit var apiKey: ApiKey
+
+    /** The Connect page is up to replace a key that works (chosen from the Library tab's menu). */
+    private var changingKey = false
+
+    /** OK held on the Library tab opens the TMDB menu; a short press opens the tab as usual. */
+    private var tabHolding = false
+    private val holdTab = Runnable {
+        tabHolding = false
+        openTmdbMenu()
+    }
     private lateinit var pageMedia: View
     private lateinit var mediaPage: MediaPage
     private lateinit var logos: TitleLogos
@@ -230,7 +245,11 @@ class HomeActivity : Activity(), Previews.Listener {
             scheduleAmbient()
         }
         ImageFiles.init(this)
-        tmdb = Tmdb(this)
+        apiKey = ApiKey(this)
+        tmdb = Tmdb(this, apiKey)
+        tmdb.onKeyRefused = { runOnUiThread { if (!isDestroyed) onKeyRefused() } }
+        pageConnect = findViewById(R.id.page_connect)
+        connect = Connect(pageConnect, tmdb, ::onKeyConnected)
         account = Account(this)
         catalog = Catalog(tmdb, account)
         lists = Lists(tmdb, account)
@@ -334,7 +353,15 @@ class HomeActivity : Activity(), Previews.Listener {
 
         content.post {
             nav.go(0, 0, animate = false)
-            if (intent?.action == ACTION_SHOW_APPS) openApps()
+            when {
+                intent?.action == ACTION_SHOW_APPS -> openApps()
+                // A fresh install has no TMDB key yet: open the page that connects one.
+                !apiKey.present -> {
+                    enterTabs()
+                    tabBar.focusOn(Page.LIBRARY)
+                    showPage(Page.LIBRARY)
+                }
+            }
         }
     }
 
@@ -342,6 +369,10 @@ class HomeActivity : Activity(), Previews.Listener {
         super.onResume()
         resumed = true
         refreshContent()
+        if (page == Page.LIBRARY) {
+            if (pageConnect.visibility == View.VISIBLE) connect.start(replacing = apiKey.present)
+            if (pageSignin.visibility == View.VISIBLE) signIn.start()
+        }
         hero.setRunning(nav.row == 0 && page == Page.HOME)
         if (page == Page.HOME) {
             if (area == Area.HOME) nav.refocus() else onMove(nav.row, nav.col, rowChanged = false)
@@ -369,6 +400,7 @@ class HomeActivity : Activity(), Previews.Listener {
         exitAmbient()
         previews.release()
         signIn.stop()
+        connect.stop()
     }
 
     override fun onDestroy() {
@@ -454,6 +486,25 @@ class HomeActivity : Activity(), Previews.Listener {
             return true
         }
         val ok = event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER || event.keyCode == KeyEvent.KEYCODE_ENTER
+        if (ok && area == Area.TABS && tabBar.focused == Page.LIBRARY && apiKey.present) {
+            when (event.action) {
+                KeyEvent.ACTION_DOWN -> if (event.repeatCount == 0) {
+                    tabHolding = true
+                    main.postDelayed(holdTab, HOLD_MS)
+                } else if (tabHolding) {
+                    main.removeCallbacks(holdTab)
+                    holdTab.run()
+                }
+                KeyEvent.ACTION_UP -> if (tabHolding) {
+                    tabHolding = false
+                    main.removeCallbacks(holdTab)
+                    main.removeCallbacks(pageSettle)
+                    showPage(tabBar.focused)
+                    enterPage()
+                }
+            }
+            return true
+        }
         if (ok && area == Area.TABS) {
             // OK on a tab: switch now and step into its page.
             if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
@@ -661,15 +712,20 @@ class HomeActivity : Activity(), Previews.Listener {
         val from = page
         page = target
         tabBar.select(target)
-        if (from == Page.LIBRARY) signIn.stop()
+        if (from == Page.LIBRARY) {
+            signIn.stop()
+            connect.stop()
+            if (target != Page.LIBRARY) changingKey = false
+        }
         val shown: View? = when {
             target == Page.HOME -> null
             target == Page.APPS -> pageApps
             isMedia(target) -> pageMedia
+            target == Page.LIBRARY && (!apiKey.present || changingKey) -> pageConnect
             target == Page.LIBRARY && !account.signedIn -> pageSignin
             else -> pageSearch
         }
-        for (other in arrayOf(pageApps, pageSearch, pageSignin, pageMedia)) if (other !== shown) other.fadeTo(0f, 200)
+        for (other in arrayOf(pageApps, pageSearch, pageSignin, pageConnect, pageMedia)) if (other !== shown) other.fadeTo(0f, 200)
         if (target == Page.HOME) {
             backdrop.drift = true
             scrimLeft.fadeTo(1f, 420)
@@ -711,6 +767,10 @@ class HomeActivity : Activity(), Previews.Listener {
                 rise(pageSignin)
                 signIn.start()
             }
+            pageConnect -> {
+                rise(pageConnect)
+                connect.start(replacing = apiKey.present)
+            }
             pageApps -> rise(pageApps)
             pageMedia -> {
                 // Shows to Movies: the page drops away and rises again with the other lists.
@@ -728,7 +788,8 @@ class HomeActivity : Activity(), Previews.Listener {
 
     /** The pages built on [MediaPage]: Shows, Movies, and the Library when signed in. */
     private fun isMedia(target: Int) =
-        target == Page.SHOWS || target == Page.MOVIES || (target == Page.LIBRARY && account.signedIn)
+        target == Page.SHOWS || target == Page.MOVIES ||
+            (target == Page.LIBRARY && account.signedIn && apiKey.present && !changingKey)
 
     /**
      * Fills a [MediaPage] tab. Shows and Movies: Trending, the genres (once loaded; Trending alone
@@ -1243,6 +1304,62 @@ class HomeActivity : Activity(), Previews.Listener {
         val top = sections.top + section.top
         val end = sections.top + sections.height
         return -minOf(top - Ui.px(SECTION_TOP), end - Ui.px(CONTENT_END)).coerceAtLeast(0).toFloat()
+    }
+
+    /** A key arrived from the phone and TMDB accepted it: everything loads, and the Library moves on to sign-in. */
+    private fun onKeyConnected(key: String) {
+        apiKey.save(key)
+        changingKey = false
+        browse.clear()
+        browseAsked.clear()
+        refreshContent(force = true)
+        showNote(getString(R.string.connect_note))
+        main.postDelayed({
+            if (page == Page.LIBRARY) {
+                page = Page.NONE
+                showPage(Page.LIBRARY)
+            }
+        }, 1_800)
+    }
+
+    /** TMDB turned the key down: say so, and the Library tab asks for a new one. */
+    private fun onKeyRefused() {
+        showNote(getString(R.string.connect_refused_note))
+        if (page == Page.LIBRARY) {
+            page = Page.NONE
+            showPage(Page.LIBRARY)
+        }
+    }
+
+    /** OK held on the Library tab: use another TMDB key, or sign out of the TMDB account. */
+    private fun openTmdbMenu() {
+        val items = ArrayList<ContextMenu.Item>()
+        items += ContextMenu.Item(R.drawable.ic_library, getString(R.string.tmdb_change_key)) {
+            changingKey = true
+            main.removeCallbacks(pageSettle)
+            page = Page.NONE
+            showPage(Page.LIBRARY)
+        }
+        if (account.signedIn) {
+            items += ContextMenu.Item(R.drawable.ic_check, getString(R.string.tmdb_sign_out)) {
+                account.clear()
+                tmdb.forget("account-")
+                pendingLists.clear()
+                pendingShows.clear()
+                refreshContent(force = true)
+                page = Page.NONE
+                showPage(Page.LIBRARY)
+                showNote(getString(R.string.tmdb_signed_out))
+            }
+        }
+        val line = when {
+            account.signedIn -> getString(R.string.signin_done, account.username)
+            apiKey.connected -> getString(R.string.tmdb_using_your_key)
+            else -> getString(R.string.tmdb_using_built_in_key)
+        }
+        menuFrom = area
+        area = Area.MENU
+        menu.open(getString(R.string.tmdb_menu_title), line, items)
     }
 
     /** Signed in on the phone: load the user's own lists, and the Library turns into them. */

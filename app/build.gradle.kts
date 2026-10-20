@@ -19,9 +19,12 @@ android {
         applicationId = "com.shivansh.mibox"
         minSdk = 28
         targetSdk = 37
-        versionCode = 4
-        versionName = "0.3.1"
-        buildConfigField("String", "TMDB_API_KEY", "\"${localProps.getProperty("tmdb.apiKey", "")}\"")
+        versionCode = 5
+        versionName = "0.4.0"
+        // A public build (./gradlew assembleRelease -PpublicBuild) carries no key: users connect
+        // their own from their phone on the Library tab. Developer builds may bake one in.
+        val bakedKey = if (providers.gradleProperty("publicBuild").isPresent) "" else localProps.getProperty("tmdb.apiKey", "")
+        buildConfigField("String", "TMDB_API_KEY", "\"$bakedKey\"")
     }
 
     buildFeatures {

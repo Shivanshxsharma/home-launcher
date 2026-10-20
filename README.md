@@ -13,6 +13,10 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Shivanshxsharma/home-launcher/releases/latest"><b>Download the APK</b></a> · Android TV 9 or newer
+</p>
+
+<p align="center">
   <img src="docs/screenshots/home.jpg" alt="The home screen: a full-bleed banner for Carrie with its title logo, Play, Add to List and Trailer buttons, and the favorite apps row underneath" width="100%">
 </p>
 
@@ -20,7 +24,8 @@
 
 - **A banner worth looking at.** Full-bleed art, the show's own title logo, and three buttons: **Play**, **Add to List** and **Trailer**. Left and right walk through the buttons, then on to the next show.
 - **Shows and Movies, PS5-style.** Pick a genre (Indian, Drama, Crime, Action and more), and the focused title fills the screen above a single row of posters.
-- **Your library.** Sign in to TMDB by scanning a QR code with your phone. Your watchlists and favorites become My Shows, Watchlist and Favorites.
+- **Set up from your phone.** Scan a QR code on the TV and paste your free TMDB key on your phone; nothing is typed with the remote.
+- **Your library.** Sign in to TMDB the same way, by scanning a code. Your watchlists and favorites become My Shows, Watchlist and Favorites.
 - **Search with your voice.** An on-screen keyboard, plus a mic key that uses the box's own Google speech service. The show you meant comes first.
 - **Trailers in place.** Trailers play full-screen inside the launcher, and Back drops you right where you were.
 - **Hold OK on anything.** On a show you can add it to a list, favorite it, play its trailer or open its app. On an app you can add it to Home, move it or remove it.
@@ -73,6 +78,7 @@ Browsing works like the PS5 home screen. Up from the posters is the genre strip,
 | **D-pad** | Moves focus. On the banner, left and right go across the buttons, then to the previous or next show. |
 | **OK** | Opens the app, show or tab in focus. |
 | **Hold OK** or **Menu** | Opens the options for that show or app. |
+| **Hold OK on the Library tab** | TMDB options: use a different key, or sign out. |
 | **Back** | Climbs up: from a row to the banner, from the banner to the tab bar, from another tab to Home. |
 | **Home** | Takes you back to the top of Home. |
 | **Apps** | Opens the Apps tab (after you turn on the Apps button service; see below). |
@@ -89,24 +95,33 @@ The Mi Box 4K has a Mali-450 GPU and 2 GB of RAM, so smoothness was designed in 
 
 ## Install it
 
-You need a free TMDB API key, the Android SDK and a box with network debugging (ADB) turned on.
-
-1. Get an API key at [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api) and add it to `local.properties` in the project folder. That file is ignored by git, so the key stays out of the repository.
-   ```properties
-   tmdb.apiKey=YOUR_TMDB_V3_KEY
-   ```
-2. Build the APK and install it on the box (it's signed with the debug key, which is fine for sideloading):
+1. **Download** `HomeLauncher-0.4.0.apk` from the [latest release](https://github.com/Shivanshxsharma/home-launcher/releases/latest).
+2. **Install it on the TV.** Turn on network debugging on the TV (Settings → Device Preferences → About → press Build seven times, then Developer options → USB debugging), then from a computer on the same Wi-Fi:
    ```bash
-   ./gradlew assembleRelease
-   adb connect <box-ip>:5555
-   adb install -r app/build/outputs/apk/release/app-release.apk
+   adb connect <tv-ip>:5555
+   adb install HomeLauncher-0.4.0.apk
    ```
-3. **Make it the Home screen.** Android TV's built-in launcher always takes priority over installed ones, so switch it off:
+   A file manager or a "send files to TV" app works too.
+3. **Connect TMDB.** Open Home Launcher and it starts on the **Connect TMDB** page. Scan the code with a phone on the same Wi-Fi, follow the link on your phone to get a free TMDB API key, and paste it in. The TV checks the key and connects. The key is kept only on the TV.
+4. **Optional: sign in** on the Library tab, the same way, to bring in your TMDB watchlist and favorites.
+5. **Make it the Home screen.** Android TV's built-in launcher always takes priority over installed ones, so switch it off:
    ```bash
    adb shell pm disable-user --user 0 com.google.android.tvlauncher
    ```
    To go back, run `adb shell pm enable com.google.android.tvlauncher`, or on the TV go to **Settings → Apps → See all apps → Show system apps → Android TV Home → Enable**.
-4. **Optional: the remote's Apps button.** Android TV only sends this button to its own launcher. To have it open this launcher's Apps tab instead, go to **Settings → Device Preferences → Accessibility** and turn on **Home Launcher: Apps button**. That service listens for that one button and reads nothing on screen.
+6. **Optional: the remote's Apps button.** Android TV only sends this button to its own launcher. To have it open this launcher's Apps tab instead, go to **Settings → Device Preferences → Accessibility** and turn on **Home Launcher: Apps button**. That service listens for that one button and reads nothing on screen.
+
+The APK is signed with a development key. If you built and installed your own copy before, uninstall it first.
+
+### Build it yourself
+
+You need JDK 17 or newer and the Android SDK (platform 37).
+
+```bash
+./gradlew assembleRelease -PpublicBuild
+```
+
+That builds an APK with no key inside; you connect one from your phone as above. For your own builds you can bake a key in instead: put `tmdb.apiKey=YOUR_KEY` in `local.properties` (git ignores that file) and leave out `-PpublicBuild`. Don't share an APK built that way, because anyone can read the key out of it.
 
 ## Under the hood
 
@@ -116,13 +131,13 @@ app/src/main/java/com/shivansh/mibox/
 ├── TrailerActivity.kt   full-screen trailers (YouTube's embedded player)
 ├── AppsKeyService.kt    the remote's Apps button
 ├── data/                installed apps, favorites, demo content
-│   └── tmdb/            TMDB client, catalog, genres, search, lists, QR sign-in
+│   └── tmdb/            TMDB client, key, phone setup page, catalog, search, lists, sign-in
 └── ui/                  banner, focus cards, PS5-style pages, keyboard, menu, glass, backdrops
 ```
 
 - **Kotlin**, `minSdk 28` (Android 9), no Compose and no image-loading library.
 - **TMDB v3** for titles, art, logos, trailers, India watch providers and your lists, with **ZXing** for the sign-in QR code.
-- Your TMDB session stays on the box. There are no analytics.
+- Your TMDB key and session stay on the TV. The setup page the TV serves answers only at a random link, and only while the Connect page is open. There are no analytics.
 
 ## Status
 
