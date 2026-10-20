@@ -46,7 +46,7 @@
     <View
         android:id="@+id/scrim_bottom"
         android:layout_width="match_parent"
-        android:layout_height="270dp"
+        android:layout_height="300dp"
         android:layout_gravity="bottom"
         android:forceHasOverlappingRendering="false" />
 
@@ -69,7 +69,7 @@
     <FrameLayout
         android:id="@+id/content"
         android:layout_width="match_parent"
-        android:layout_height="1230dp"
+        android:layout_height="1800dp"
         android:clipChildren="false"
         android:clipToPadding="false"
         android:forceHasOverlappingRendering="false">
@@ -84,69 +84,155 @@
             android:layout_height="122dp"
             android:layout_marginTop="390dp" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/row_up_next"
-            style="@style/Row"
-            android:layout_height="157dp"
-            android:layout_marginTop="574dp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/row_my_shows"
-            style="@style/Row"
-            android:layout_height="196dp"
-            android:layout_marginTop="794dp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/row_favorites"
-            style="@style/Row"
-            android:layout_height="179.5dp"
-            android:layout_marginTop="1044dp" />
-
-        <!-- Row titles come after the rows, so a lifted card's shadow passes under them. -->
+        <!--
+          The show rows, one section each: the user's (My Shows, Favorites) and the suggestions.
+          A section with no cards is gone and the rest close up; HomeActivity scrolls to each
+          section wherever it ends up.
+        -->
         <LinearLayout
-            style="@style/RowHeader"
-            android:layout_marginTop="545dp">
+            android:id="@+id/sections"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="545dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:forceHasOverlappingRendering="false"
+            android:orientation="vertical">
 
-            <TextView
-                style="@style/RowTitle"
-                android:text="@string/row_up_next" />
+            <FrameLayout
+                android:id="@+id/section_up_next"
+                style="@style/Section"
+                android:layout_height="186dp">
 
-            <TextView
-                style="@style/RowSubtitle"
-                android:text="@string/row_up_next_sub" />
-        </LinearLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/row_up_next"
+                    style="@style/Row"
+                    android:layout_height="157dp"
+                    android:layout_marginTop="29dp" />
 
-        <LinearLayout
-            style="@style/RowHeader"
-            android:layout_marginTop="761dp">
+                <!-- After the row, so a lifted card's shadow passes under the title. -->
+                <LinearLayout style="@style/RowHeader">
 
-            <TextView
-                style="@style/RowTitle"
-                android:text="@string/row_my_shows" />
+                    <TextView
+                        android:id="@+id/title_up_next"
+                        style="@style/RowTitle" />
 
-            <TextView
-                style="@style/RowSubtitle"
-                android:text="@string/row_my_shows_sub" />
-        </LinearLayout>
+                    <TextView
+                        android:id="@+id/sub_up_next"
+                        style="@style/RowSubtitle" />
+                </LinearLayout>
+            </FrameLayout>
 
-        <LinearLayout
-            style="@style/RowHeader"
-            android:layout_marginTop="1015dp">
+            <FrameLayout
+                android:id="@+id/section_my_shows"
+                style="@style/Section"
+                android:layout_height="229dp"
+                android:layout_marginTop="28dp">
 
-            <TextView
-                style="@style/RowTitle"
-                android:text="@string/row_favorites" />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/row_my_shows"
+                    style="@style/Row"
+                    android:layout_height="196dp"
+                    android:layout_marginTop="33dp" />
 
-            <TextView
-                style="@style/RowSubtitle"
-                android:text="@string/row_favorites_sub" />
+                <!-- After the row, so a lifted card's shadow passes under the title. -->
+                <LinearLayout style="@style/RowHeader">
+
+                    <TextView
+                        android:id="@+id/title_my_shows"
+                        style="@style/RowTitle" />
+
+                    <TextView
+                        android:id="@+id/sub_my_shows"
+                        style="@style/RowSubtitle" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/section_favorites"
+                style="@style/Section"
+                android:layout_height="208dp"
+                android:layout_marginTop="28dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/row_favorites"
+                    style="@style/Row"
+                    android:layout_height="179dp"
+                    android:layout_marginTop="29dp" />
+
+                <!-- After the row, so a lifted card's shadow passes under the title. -->
+                <LinearLayout style="@style/RowHeader">
+
+                    <TextView
+                        android:id="@+id/title_favorites"
+                        style="@style/RowTitle" />
+
+                    <TextView
+                        android:id="@+id/sub_favorites"
+                        style="@style/RowSubtitle" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/section_popular"
+                style="@style/Section"
+                android:layout_height="229dp"
+                android:layout_marginTop="28dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/row_popular"
+                    style="@style/Row"
+                    android:layout_height="196dp"
+                    android:layout_marginTop="33dp" />
+
+                <!-- After the row, so a lifted card's shadow passes under the title. -->
+                <LinearLayout style="@style/RowHeader">
+
+                    <TextView
+                        android:id="@+id/title_popular"
+                        style="@style/RowTitle" />
+
+                    <TextView
+                        android:id="@+id/sub_popular"
+                        style="@style/RowSubtitle" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/section_acclaimed"
+                style="@style/Section"
+                android:layout_height="208dp"
+                android:layout_marginTop="28dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/row_acclaimed"
+                    style="@style/Row"
+                    android:layout_height="179dp"
+                    android:layout_marginTop="29dp" />
+
+                <!-- After the row, so a lifted card's shadow passes under the title. -->
+                <LinearLayout style="@style/RowHeader">
+
+                    <TextView
+                        android:id="@+id/title_acclaimed"
+                        style="@style/RowTitle" />
+
+                    <TextView
+                        android:id="@+id/sub_acclaimed"
+                        style="@style/RowSubtitle" />
+                </LinearLayout>
+            </FrameLayout>
         </LinearLayout>
     </FrameLayout>
 
     <!-- The other tabs' pages, shown in place of the home content. -->
     <include layout="@layout/page_apps" />
 
-    <include layout="@layout/page_soon" />
+    <include layout="@layout/page_search" />
+
+    <include layout="@layout/page_media" />
+
+    <include layout="@layout/page_signin" />
 
     <include layout="@layout/home_chrome" />
 
@@ -182,4 +268,23 @@
             android:textColor="@color/text_soft"
             android:textSize="9.5dp" />
     </LinearLayout>
+
+    <!-- A short confirmation, e.g. "Added to My Shows". -->
+    <TextView
+        android:id="@+id/note"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="20dp"
+        android:alpha="0"
+        android:fontFamily="@font/geist_medium"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColor="@color/ink"
+        android:textSize="11.5dp"
+        android:visibility="invisible" />
+
+    <include layout="@layout/menu" />
 </FrameLayout>

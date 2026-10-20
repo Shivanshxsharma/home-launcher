@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Show data and artwork come from TMDB. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Runs on Android TV, but nothing here needs the leanback feature or a touchscreen. -->
     <uses-feature
         android:name="android.software.leanback"
@@ -49,5 +52,27 @@
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- The remote's Apps button, which Android TV only gives the built-in launcher. -->
+        <service
+            android:name=".AppsKeyService"
+            android:exported="true"
+            android:label="@string/apps_key_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/apps_key_service" />
+        </service>
+
+        <!-- Trailers, full-screen over the launcher; Back returns to it. -->
+        <activity
+            android:name=".TrailerActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|density|fontScale"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@style/Theme.Trailer" />
     </application>
 </manifest>

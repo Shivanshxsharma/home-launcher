@@ -2,10 +2,12 @@
 agp = "9.4.1"
 dynamicanimation = "1.1.0"
 recyclerview = "1.4.0"
+zxing = "3.5.4"
 
 [libraries]
 androidx-dynamicanimation = { group = "androidx.dynamicanimation", name = "dynamicanimation", version.ref = "dynamicanimation" }
 androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

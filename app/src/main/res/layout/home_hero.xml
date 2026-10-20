@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The hero: tag, title, then the details that step away in ambient mode. -->
+<!--
+  The hero: tag, the show's title (its logo art when TMDB has one), then the details that step
+  away in ambient mode. Play, Add to List and Trailer are focusable; left and right move between them.
+  Anchored at the bottom, just above the apps row, so a tall logo or a two-line title grows upward.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/hero"
     android:layout_width="450dp"
-    android:layout_height="wrap_content"
+    android:layout_height="374dp"
     android:layout_marginStart="56dp"
-    android:layout_marginTop="150dp"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:forceHasOverlappingRendering="false"
+    android:gravity="bottom"
     android:orientation="vertical">
 
     <LinearLayout
@@ -47,16 +51,34 @@
             android:textColor="@color/text_label" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/hero_title"
+    <FrameLayout
+        android:id="@+id/hero_title_box"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:includeFontPadding="false"
-        android:maxLines="2"
-        android:textColor="@color/ink"
+        android:clipChildren="false"
         android:transformPivotX="0dp"
-        android:transformPivotY="0dp" />
+        android:transformPivotY="0dp">
+
+        <TextView
+            android:id="@+id/hero_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:includeFontPadding="false"
+            android:maxLines="2"
+            android:textColor="@color/ink" />
+
+        <!-- The show's own title art from TMDB, when it has one; sized in code to fit its box. -->
+        <ImageView
+            android:id="@+id/hero_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="6dp"
+            android:importantForAccessibility="no"
+            android:scaleType="fitXY"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/hero_details"
@@ -117,6 +139,8 @@
             android:fontFamily="@font/geist_regular"
             android:lineHeight="18dp"
             android:maxLines="2"
+            android:shadowColor="#99000000"
+            android:shadowRadius="12"
             android:textColor="@color/text_soft"
             android:textSize="12.5dp" />
 
@@ -158,6 +182,7 @@
                     android:paddingEnd="18dp">
 
                     <ImageView
+                        android:id="@+id/hero_play_icon"
                         android:layout_width="10dp"
                         android:layout_height="11dp"
                         android:importantForAccessibility="no"
@@ -175,37 +200,67 @@
                 </LinearLayout>
             </FrameLayout>
 
-            <FrameLayout
-                android:id="@+id/hero_mine"
-                android:layout_width="34dp"
+            <LinearLayout
+                android:id="@+id/hero_list"
+                android:layout_width="wrap_content"
                 android:layout_height="34dp"
-                android:layout_marginStart="9dp"
-                android:background="@drawable/circle_glass"
-                android:contentDescription="@string/in_my_shows">
+                android:layout_marginStart="10dp"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="13dp"
+                android:paddingEnd="17dp">
 
                 <ImageView
+                    android:id="@+id/hero_list_icon"
+                    android:layout_width="11dp"
+                    android:layout_height="11dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_plus" />
+
+                <TextView
+                    android:id="@+id/hero_list_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="7dp"
+                    android:fontFamily="@font/geist_semibold"
+                    android:includeFontPadding="false"
+                    android:text="@string/add_to_list"
+                    android:textColor="@color/ink"
+                    android:textSize="12.5dp" />
+            </LinearLayout>
+
+            <!-- Plays the trailer in the YouTube app; Back returns here. -->
+            <LinearLayout
+                android:id="@+id/hero_trailer"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:layout_marginStart="10dp"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="13dp"
+                android:paddingEnd="17dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/hero_trailer_icon"
                     android:layout_width="12dp"
                     android:layout_height="12dp"
-                    android:layout_gravity="center"
                     android:importantForAccessibility="no"
-                    android:src="@drawable/ic_check" />
-            </FrameLayout>
+                    android:src="@drawable/ic_film" />
 
-            <FrameLayout
-                android:id="@+id/hero_info"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
-                android:layout_marginStart="9dp"
-                android:background="@drawable/circle_glass"
-                android:contentDescription="@string/details">
-
-                <ImageView
-                    android:layout_width="13dp"
-                    android:layout_height="13dp"
-                    android:layout_gravity="center"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_info" />
-            </FrameLayout>
+                <TextView
+                    android:id="@+id/hero_trailer_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="7dp"
+                    android:fontFamily="@font/geist_semibold"
+                    android:includeFontPadding="false"
+                    android:text="@string/trailer"
+                    android:textColor="@color/ink"
+                    android:textSize="12.5dp" />
+            </LinearLayout>
         </LinearLayout>
 
         <com.shivansh.mibox.ui.HeroDots

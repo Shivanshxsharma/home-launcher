@@ -5,6 +5,10 @@ import android.animation.PropertyValuesHolder
 import android.content.Context
 import android.content.res.AssetManager
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.LinearGradient
+import android.graphics.Paint
+import android.graphics.Shader
 import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
@@ -16,8 +20,10 @@ import android.widget.ImageView
 /** One decoded backdrop: the 720p picture plus its two pre-blurred glass layers. */
 class BackdropArt(val sharp: Bitmap, val glass: Bitmap, val band: Bitmap) {
     companion object {
-        fun decode(assets: AssetManager, path: String): BackdropArt {
-            val sharp = Decode.asset(assets, path, 1280, 720)
+        /** [shaded] bakes the page's shading into the picture (see [Shade]). */
+        fun decode(assets: AssetManager, path: String, shaded: Boolean = false): BackdropArt {
+            val sharp = Decode.asset(assets, path, 1280, 720, mutable = shaded)
+            if (shaded) Shade.bake(sharp)
             val tiny = Decode.asset(assets, path, Glass.WIDTH, Glass.HEIGHT, lowRam = false)
             val glass = Glass.full(tiny)
             val band = Glass.band(glass)
@@ -27,6 +33,30 @@ class BackdropArt(val sharp: Bitmap, val glass: Bitmap, val band: Bitmap) {
             band.prepareToDraw()
             return BackdropArt(sharp, glass, band)
         }
+    }
+}
+
+/**
+ * The Shows and Movies tabs' shading, drawn into the picture once as it is decoded: darker at the
+ * left for the words, at the bottom for the posters, and at the top for the tab bar and genres.
+ * Drawn live as overlay views (as on Home), these full-screen gradients cost the Mali-450 about
+ * 7 ms of GPU time a frame; baked in, they cost nothing.
+ */
+object Shade {
+    fun bake(art: Bitmap) {
+        val w = art.width.toFloat()
+        val h = art.height.toFloat()
+        val canvas = Canvas(art)
+        val paint = Paint().apply { isDither = true }
+        fun band(x0: Float, y0: Float, x1: Float, y1: Float, alphas: FloatArray, stops: FloatArray, right: Float, bottom: Float) {
+            val colors = IntArray(alphas.size) { Palette.alpha(Palette.NIGHT, alphas[it]) }
+            paint.shader = LinearGradient(x0, y0, x1, y1, colors, stops, Shader.TileMode.CLAMP)
+            canvas.drawRect(0f, 0f, right, bottom, paint)
+        }
+        // The same curves as Home's scrims (HomeActivity), plus the genre strip's shade at the top.
+        band(0f, 0f, w * 0.6f, 0f, floatArrayOf(0.72f, 0.42f, 0.14f, 0f), floatArrayOf(0f, 0.38f, 0.7f, 1f), w * 0.6f, h)
+        band(0f, h, 0f, h * (1 - 0.555f), floatArrayOf(0.84f, 0.5f, 0.16f, 0f), floatArrayOf(0f, 0.36f, 0.7f, 1f), w, h)
+        band(0f, 0f, 0f, h * 0.24f, floatArrayOf(0.6f, 0.32f, 0f), floatArrayOf(0f, 0.55f, 1f), w, h * 0.24f)
     }
 }
 
@@ -153,17 +183,29 @@ class Backdrop(
     private val pump = Runnable { pump() }
 
     /** Shows [path], after [delayMs] so quick focus moves across cards don't decode every one. */
-    fun show(path: String, delayMs: Long = 0) {
-        wanted = path
+    fun show(path: String, delayMs: Long = 0, shaded: Boolean = false) {
+        wanted = if (shaded) path + SHADED else path
         main.removeCallbacks(pump)
         if (delayMs > 0) main.postDelayed(pump, delayMs) else pump()
     }
 
     /** Fades the art away to show the preview playing under it, or brings it back. */
     fun setArtShown(shown: Boolean) {
+        artShown = shown
         group.fadeTo(if (shown) 1f else 0f, if (shown) 450 else 900)
-        for (slot in arrayOf(lower, upper)) slot.holdDrift(!shown)
+        for (slot in arrayOf(lower, upper)) slot.holdDrift(!shown || !drift)
     }
+
+    /**
+     * The slow zoom. Off where the art changes with every press (Shows, Movies): a still picture
+     * lets the GPU redraw only what moves, instead of the whole screen every frame.
+     */
+    var drift = true
+        set(value) {
+            field = value
+            for (slot in arrayOf(lower, upper)) slot.holdDrift(!value || !artShown)
+        }
+    private var artShown = true
 
     fun setGlass(fullGlass: Boolean, showBand: Boolean) {
         if (fullGlass == this.fullGlass && showBand == this.showBand) return
@@ -173,18 +215,18 @@ class Backdrop(
     }
 
     private fun pump() {
-        val path = wanted ?: return
-        if (busy || path == shown) return
+        val key = wanted ?: return
+        if (busy || key == shown) return
         busy = true
         val slot = if (front === upper) lower else upper
         slot.release()
         Workers.backdrop.execute {
             val art = try {
-                BackdropArt.decode(assets, path)
+                BackdropArt.decode(assets, key.removeSuffix(SHADED), shaded = key.endsWith(SHADED))
             } catch (_: Exception) {
                 null
             }
-            main.post { present(slot, path, art) }
+            main.post { present(slot, key, art) }
         }
     }
 
@@ -197,6 +239,7 @@ class Backdrop(
         }
         slot.bind(art, fullGlass, showBand)
         slot.startDrift()
+        if (!drift) slot.holdDrift(true)
         val first = front == null
         front = slot
         if (slot === upper) {
@@ -226,5 +269,8 @@ class Backdrop(
 
     private companion object {
         const val FADE_MS = 800L
+
+        /** Marks a request for the shaded version of a picture; it is decoded separately. */
+        const val SHADED = "#shaded"
     }
 }

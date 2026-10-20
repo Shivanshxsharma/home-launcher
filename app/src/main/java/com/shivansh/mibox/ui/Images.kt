@@ -15,6 +15,10 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 object Decode {
+    /** Bundled assets by path; TMDB artwork by URL, downloaded once into [ImageFiles]. */
+    private fun source(assets: AssetManager, path: String): ImageDecoder.Source =
+        if (path.startsWith("https://")) ImageDecoder.createSource(ImageFiles.file(path)) else ImageDecoder.createSource(assets, path)
+
     /**
      * Decodes an asset no larger than needed to cover [width] x [height] (never upscaled).
      * [lowRam] lets opaque JPEGs come back as RGB_565, half the memory of ARGB_8888.
@@ -26,7 +30,7 @@ object Decode {
         height: Int,
         lowRam: Boolean = true,
         mutable: Boolean = false,
-    ): Bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(assets, path)) { decoder, info, _ ->
+    ): Bitmap = ImageDecoder.decodeBitmap(source(assets, path)) { decoder, info, _ ->
         decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
         decoder.memorySizePolicy = if (lowRam) ImageDecoder.MEMORY_POLICY_LOW_RAM else ImageDecoder.MEMORY_POLICY_DEFAULT
         decoder.isMutableRequired = mutable

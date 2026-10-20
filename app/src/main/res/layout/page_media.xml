@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Shows and Movies tabs, laid out like the PS5 home: a strip of genres under the tab bar, the
+  focused title large over its own full-bleed art, one row of posters along the bottom, and the
+  remote's buttons spelled out at the bottom right. The art's shading is baked into the picture
+  (Backdrop's Shade), so this page draws no full-screen gradients of its own.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/page_media"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:alpha="0"
+    android:clipChildren="false"
+    android:forceHasOverlappingRendering="false"
+    android:visibility="invisible">
+
+    <!-- Genres. Focusable itself, so the posters let go of focus while the strip is in use. -->
+    <HorizontalScrollView
+        android:id="@+id/media_genres"
+        android:layout_width="match_parent"
+        android:layout_height="34dp"
+        android:layout_marginTop="64dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:focusable="true"
+        android:overScrollMode="never"
+        android:paddingStart="56dp"
+        android:paddingEnd="56dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/media_genre_list"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:clipChildren="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+    <!-- The focused title. Anchored at the bottom, so a tall logo or two-line name grows upward. -->
+    <LinearLayout
+        android:id="@+id/media_info"
+        android:layout_width="520dp"
+        android:layout_height="212dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="102dp"
+        android:clipChildren="false"
+        android:forceHasOverlappingRendering="false"
+        android:gravity="bottom"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/media_dot"
+                android:layout_width="5dp"
+                android:layout_height="5dp"
+                android:background="@drawable/dot" />
+
+            <TextView
+                android:id="@+id/media_kind"
+                style="@style/TagText"
+                android:layout_marginStart="7dp"
+                android:fontFamily="@font/geist_semibold"
+                android:textColor="@color/ink" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/media_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:maxLines="2"
+                android:textColor="@color/ink" />
+
+            <ImageView
+                android:id="@+id/media_logo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="4dp"
+                android:importantForAccessibility="no"
+                android:scaleType="fitXY"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/media_meta"
+            style="@style/MetaText"
+            android:layout_marginTop="9dp" />
+
+        <TextView
+            android:id="@+id/media_overview"
+            android:layout_width="460dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/geist_regular"
+            android:lineHeight="18dp"
+            android:maxLines="2"
+            android:shadowColor="#99000000"
+            android:shadowRadius="12"
+            android:textColor="@color/text_soft"
+            android:textSize="12dp" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/media_row"
+        style="@style/Row"
+        android:layout_height="176dp"
+        android:layout_marginTop="326dp" />
+
+    <TextView
+        android:id="@+id/media_empty"
+        android:layout_width="460dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="57dp"
+        android:layout_marginTop="330dp"
+        android:fontFamily="@font/geist_regular"
+        android:lineHeight="18dp"
+        android:textColor="@color/text_label"
+        android:textSize="12.5dp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/media_hints"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="56dp"
+        android:layout_marginBottom="18dp"
+        android:forceHasOverlappingRendering="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal" />
+</FrameLayout>

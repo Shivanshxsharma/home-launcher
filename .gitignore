@@ -6,3 +6,6 @@ build/
 *.iml
 .DS_Store
 captures/
+
+# Release APKs copied out of build/ for installing by hand.
+dist/

@@ -55,6 +55,13 @@ class InstalledApps(private val context: Context) {
         prefs.edit().putString(KEY, encode(apps)).apply()
     }
 
+    /** The apps on the Home row, by package, in the user's order; null until the row is first set. */
+    fun favorites(): List<String>? = prefs.getString(FAVORITES, null)?.split('\n')?.filter { it.isNotEmpty() }
+
+    fun saveFavorites(packages: List<String>) {
+        prefs.edit().putString(FAVORITES, packages.joinToString("\n")).apply()
+    }
+
     @WorkerThread
     fun query(): List<AppEntry> {
         // Settings gets its own tile at the end of the row, so keep it out of the list.
@@ -97,10 +104,18 @@ class InstalledApps(private val context: Context) {
 
     companion object {
         private const val KEY = "list.v1"
+        private const val FAVORITES = "favorites.v1"
 
+        /** Every app, then Settings and All apps: the Apps tab's grid. */
         fun tiles(apps: List<AppEntry>, settingsLabel: String, allAppsLabel: String): List<AppTile> =
             apps.map { AppTile(AppTile.Kind.APP, it.label, it) } +
                 AppTile(AppTile.Kind.SETTINGS, settingsLabel) +
                 AppTile(AppTile.Kind.ALL_APPS, allAppsLabel)
+
+        /** The Home row: the favorites that are installed, in the user's order, then Settings and All apps. */
+        fun homeTiles(apps: List<AppEntry>, favorites: List<String>, settingsLabel: String, allAppsLabel: String): List<AppTile> {
+            val byPackage = apps.associateBy { it.packageName }
+            return tiles(favorites.mapNotNull { byPackage[it] }, settingsLabel, allAppsLabel)
+        }
     }
 }

@@ -40,12 +40,18 @@ object Cards {
     val APP by lazy { CardSpec.of(310, 186, 20, lift = 1.1f, caption = 58, captionOnFocus = true, bandAlpha = 0.3f) }
     val UP_NEXT by lazy { CardSpec.of(416, 234, 16, lift = 1.08f, caption = 80, captionOnFocus = false) }
     val POSTER by lazy { CardSpec.of(232, 348, 16, lift = 1.1f, caption = 44, captionOnFocus = true) }
+
+    /** A little smaller on the Shows and Movies tabs, so two rows and their captions fit one screen. */
+    val PAGE_POSTER by lazy { CardSpec.of(204, 306, 14, lift = 1.1f, caption = 44, captionOnFocus = true) }
     val FAVORITE by lazy { CardSpec.of(560, 315, 16, lift = 1.07f, caption = 44, captionOnFocus = true) }
 
     /** Scrims baked into the art, only where something is drawn over it. */
     val UP_NEXT_FINISH = CardFinish(cssAngle = 0f, from = 0.6f, end = 0.36f)
     val POSTER_FINISH = CardFinish(cssAngle = 0f, from = 0.85f, end = 0.48f)
     val FAVORITE_FINISH = CardFinish(cssAngle = 20f, from = 0.8f, end = 0.55f)
+
+    /** No scrim: for posters whose own art carries the title. */
+    val CLEAN_FINISH = CardFinish(cssAngle = 0f, from = 0f, end = 1f)
 }
 
 /**

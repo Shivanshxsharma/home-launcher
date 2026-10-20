@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Search tab: what's typed and the keyboard on the left, the results as a grid of posters on
+  the right over the focused result's frosted art. The grid scrolls up under a soft band at the top.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/page_search"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:alpha="0"
+    android:clipChildren="false"
+    android:forceHasOverlappingRendering="false"
+    android:visibility="invisible">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/search_grid"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="52dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingStart="330dp"
+        android:paddingTop="56dp"
+        android:paddingEnd="40dp"
+        android:paddingBottom="40dp"
+        android:scrollbars="none" />
+
+    <View
+        android:id="@+id/search_fade"
+        android:layout_width="match_parent"
+        android:layout_height="98dp" />
+
+    <LinearLayout
+        android:layout_width="212dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="70dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/search_query"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="start"
+            android:fontFamily="@font/geist_semibold"
+            android:includeFontPadding="false"
+            android:letterSpacing="-0.01"
+            android:singleLine="true"
+            android:textColor="@color/ink"
+            android:textSize="20dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/hairline" />
+
+        <!-- Focusable itself, so the posters let go of focus while it's in use. -->
+        <com.shivansh.mibox.ui.Keyboard
+            android:id="@+id/search_keys"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <LinearLayout
+        style="@style/RowHeader"
+        android:layout_marginStart="331dp"
+        android:layout_marginTop="68dp">
+
+        <TextView
+            android:id="@+id/search_heading"
+            style="@style/RowTitle"
+            android:ellipsize="end"
+            android:maxWidth="560dp"
+            android:singleLine="true" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/search_empty"
+        android:layout_width="440dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="331dp"
+        android:layout_marginTop="112dp"
+        android:fontFamily="@font/geist_regular"
+        android:lineHeight="18dp"
+        android:textColor="@color/text_label"
+        android:textSize="12.5dp"
+        android:visibility="gone" />
+
+    <!-- Under the keyboard, clear of the results. -->
+    <LinearLayout
+        android:id="@+id/search_hints"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="400dp"
+        android:forceHasOverlappingRendering="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal" />
+</FrameLayout>

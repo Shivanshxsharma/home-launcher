@@ -28,12 +28,34 @@ open class CardHolder(val card: FocusCard) : RecyclerView.ViewHolder(card) {
 
 /** A row of [FocusCard]s. Lists are a handful of items, so updates simply rebind. */
 abstract class CardAdapter<T, H : CardHolder>(protected val spec: CardSpec) : RecyclerView.Adapter<H>() {
-    var items: List<T> = emptyList()
+    private var list: List<T> = emptyList()
+    var items: List<T>
+        get() = list
+
         @SuppressLint("NotifyDataSetChanged")
         set(value) {
-            field = value
+            list = value
             notifyDataSetChanged()
         }
+
+    /** Sets [items] only if they changed, so the cards (and their focus) are otherwise left alone. */
+    fun update(new: List<T>) {
+        if (new != list) items = new
+    }
+
+    /** Moves one item, keeping its card (and its focus) as it goes. */
+    fun move(from: Int, to: Int) {
+        if (from !in list.indices || to !in list.indices) return
+        list = list.toMutableList().apply { add(to, removeAt(from)) }
+        notifyItemMoved(from, to)
+    }
+
+    /** Swaps one item in place (e.g. once its full record arrives); the card keeps its focus. */
+    fun replace(position: Int, item: T) {
+        if (position !in list.indices) return
+        list = list.toMutableList().apply { set(position, item) }
+        notifyItemChanged(position)
+    }
 
     /** OK pressed on a card. */
     var onActivate: ((item: T, card: View) -> Unit)? = null
@@ -155,13 +177,13 @@ class UpNextAdapter(private val images: Images) : CardAdapter<UpNext, UpNextAdap
         holder.badge.visibility = if (item.badge.isEmpty()) View.GONE else View.VISIBLE
         holder.segments.set(item.watched, item.total)
         holder.captionTitle.text = show.title
-        holder.meta.text = holder.meta.resources.getString(R.string.up_next_meta, item.next, show.provider.label)
+        holder.meta.text = holder.meta.resources.getString(R.string.up_next_meta, item.next, item.note ?: show.service)
         holder.card.contentDescription = "${show.title}, ${item.next}"
         holder.card.setTint(show.tint)
     }
 }
 
-class PosterAdapter(private val images: Images) : CardAdapter<Show, PosterAdapter.Holder>(Cards.POSTER) {
+class PosterAdapter(private val images: Images, spec: CardSpec = Cards.POSTER) : CardAdapter<Show, PosterAdapter.Holder>(spec) {
     class Holder(card: FocusCard) : CardHolder(card) {
         val image: ImageView = card.body.findViewById(R.id.card_image)
         val title: TextView = card.body.findViewById(R.id.card_title)
@@ -171,11 +193,18 @@ class PosterAdapter(private val images: Images) : CardAdapter<Show, PosterAdapte
         wire(Holder(showCard(parent, R.layout.card_poster, R.layout.caption_show)))
 
     override fun bind(holder: Holder, item: Show) {
-        images.card(holder.image, item.poster ?: item.still, spec, Cards.POSTER_FINISH)
+        // Real posters carry their own title art: show them clean and name the show underneath.
+        val keyArt = item.poster?.startsWith("https://") == true
+        images.card(holder.image, item.poster ?: item.still, spec, if (keyArt) Cards.CLEAN_FINISH else Cards.POSTER_FINISH)
+        holder.title.visibility = if (keyArt) View.GONE else View.VISIBLE
         holder.title.text = item.title
         holder.title.showTitle(item.style, 42f)
         holder.title.setLineHeight((holder.title.textSize * 0.95f).toInt())
-        holder.captionTitle.text = item.provider.label
+        holder.captionTitle.text = when {
+            !keyArt -> item.service
+            item.service.isEmpty() -> item.title
+            else -> "${item.title} · ${item.service}"
+        }
         holder.card.contentDescription = item.title
         holder.card.setTint(item.tint)
     }
@@ -194,7 +223,7 @@ class FavoritesAdapter(private val images: Images) : CardAdapter<Show, Favorites
         images.card(holder.image, item.still, spec, Cards.FAVORITE_FINISH)
         holder.title.text = item.title
         holder.title.showTitle(item.style, 56f)
-        holder.captionTitle.text = item.provider.label
+        holder.captionTitle.text = item.service
         holder.card.contentDescription = item.title
         holder.card.setTint(item.tint)
     }

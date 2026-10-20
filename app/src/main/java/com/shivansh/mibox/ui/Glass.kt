@@ -57,7 +57,7 @@ object Glass {
         val shade = Paint().apply {
             shader = LinearGradient(
                 0f, 0f, 0f, h.toFloat(),
-                intArrayOf(Palette.alpha(Palette.NIGHT, 0f), Palette.alpha(Palette.NIGHT, 0.35f), Palette.alpha(Palette.NIGHT, 0.7f)),
+                intArrayOf(Palette.alpha(Palette.NIGHT, 0f), Palette.alpha(Palette.NIGHT, 0.25f), Palette.alpha(Palette.NIGHT, 0.55f)),
                 floatArrayOf(0f, 0.45f, 1f),
                 Shader.TileMode.CLAMP,
             )

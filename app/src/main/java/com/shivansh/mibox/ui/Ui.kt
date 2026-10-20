@@ -80,6 +80,9 @@ object Workers {
     val images: ExecutorService = Executors.newFixedThreadPool(2, named("images"))
     val backdrop: ExecutorService = Executors.newSingleThreadExecutor(named("backdrop"))
     val apps: ExecutorService = Executors.newSingleThreadExecutor(named("apps"))
+    val content: ExecutorService = Executors.newSingleThreadExecutor(named("content"))
+    /** The Shows and Movies tabs: genre shelves and the full records of focused titles. */
+    val browse: ExecutorService = Executors.newFixedThreadPool(2, named("browse"))
 
     private fun named(name: String) = ThreadFactory { r ->
         Thread({

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sign in with TMDB, on the Library tab while signed out: scan the code, approve on the phone.
+  Nothing is typed on the TV.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/page_signin"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="56dp"
+    android:layout_marginTop="150dp"
+    android:alpha="0"
+    android:forceHasOverlappingRendering="false"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:visibility="invisible">
+
+    <LinearLayout
+        android:layout_width="440dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/TagText"
+            android:fontFamily="@font/geist_semibold"
+            android:text="@string/signin_tag"
+            android:textColor="@color/text_label" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/geist_semibold"
+            android:includeFontPadding="false"
+            android:letterSpacing="-0.03"
+            android:text="@string/signin_title"
+            android:textColor="@color/ink"
+            android:textSize="36dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/geist_regular"
+            android:lineHeight="18dp"
+            android:text="@string/signin_line"
+            android:textColor="@color/text_label"
+            android:textSize="12.5dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/signin_dot"
+                android:layout_width="6dp"
+                android:layout_height="6dp"
+                android:background="@drawable/dot"
+                android:backgroundTint="@color/text_quiet" />
+
+            <TextView
+                android:id="@+id/signin_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="@font/geist_medium"
+                android:includeFontPadding="false"
+                android:textColor="@color/ink"
+                android:textSize="12dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:fontFamily="@font/geist_regular"
+            android:text="@string/tmdb_notice"
+            android:textColor="@color/text_quiet"
+            android:textSize="9dp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/signin_qr_card"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginStart="60dp"
+        android:padding="9dp">
+
+        <ImageView
+            android:id="@+id/signin_qr"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/signin_title"
+            android:scaleType="fitXY" />
+    </FrameLayout>
+</LinearLayout>

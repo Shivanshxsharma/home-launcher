@@ -37,6 +37,10 @@
 
         <TextView
             style="@style/NavItem"
+            android:text="@string/nav_library" />
+
+        <TextView
+            style="@style/NavItem"
             android:text="@string/nav_shows" />
 
         <TextView
@@ -46,10 +50,6 @@
         <TextView
             style="@style/NavItem"
             android:text="@string/nav_apps" />
-
-        <TextView
-            style="@style/NavItem"
-            android:text="@string/nav_library" />
     </com.shivansh.mibox.ui.TabBar>
 
     <LinearLayout

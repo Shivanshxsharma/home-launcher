@@ -1,5 +1,12 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
+}
+
+// Secrets live in the git-ignored local.properties, never in the repo.
+val localProps = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
 }
 
 android {
@@ -12,8 +19,13 @@ android {
         applicationId = "com.shivansh.mibox"
         minSdk = 28
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 4
+        versionName = "0.3.1"
+        buildConfigField("String", "TMDB_API_KEY", "\"${localProps.getProperty("tmdb.apiKey", "")}\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -40,4 +52,5 @@ android {
 dependencies {
     implementation(libs.androidx.dynamicanimation)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.zxing.core)
 }

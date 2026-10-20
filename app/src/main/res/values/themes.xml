@@ -11,6 +11,13 @@
         <item name="android:defaultFocusHighlightEnabled">false</item>
     </style>
 
+    <!-- Black from the first frame, behind the trailer player. -->
+    <style name="Theme.Trailer" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="android:defaultFocusHighlightEnabled">false</item>
+    </style>
+
     <style name="NavItem">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">24dp</item>
@@ -50,6 +57,14 @@
         <item name="android:forceHasOverlappingRendering">false</item>
     </style>
 
+    <!-- One home row with its title; lifted cards reach past its edges. -->
+    <style name="Section">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:clipChildren">false</item>
+        <item name="android:clipToPadding">false</item>
+        <item name="android:forceHasOverlappingRendering">false</item>
+    </style>
+
     <style name="Row">
         <item name="android:layout_width">match_parent</item>
         <item name="android:paddingStart">56dp</item>
@@ -67,6 +82,9 @@
         <item name="android:fontFamily">@font/geist_regular</item>
         <item name="android:textColor">@color/text_meta</item>
         <item name="android:includeFontPadding">false</item>
+        <!-- The hero's art is only lightly shaded now; a soft shadow keeps small words legible. -->
+        <item name="android:shadowColor">#80000000</item>
+        <item name="android:shadowRadius">8</item>
     </style>
 
     <style name="MetaText.Separator">
@@ -83,5 +101,7 @@
         <item name="android:letterSpacing">0.16</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:includeFontPadding">false</item>
+        <item name="android:shadowColor">#80000000</item>
+        <item name="android:shadowRadius">8</item>
     </style>
 </resources>

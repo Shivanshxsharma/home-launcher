@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The hold-OK menu: a glass panel over a dark veil. Focus stays on the card underneath; the
+  activity routes the remote's keys here while it is open, and a cream pill marks the choice.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/menu"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:alpha="0"
+    android:forceHasOverlappingRendering="false"
+    android:visibility="invisible">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99050507" />
+
+    <LinearLayout
+        android:id="@+id/menu_panel"
+        android:layout_width="280dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:clipChildren="false"
+        android:forceHasOverlappingRendering="false"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/menu_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/geist_semibold"
+            android:includeFontPadding="false"
+            android:maxLines="2"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="@color/ink"
+            android:textSize="15dp" />
+
+        <TextView
+            android:id="@+id/menu_sub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:fontFamily="@font/geist_regular"
+            android:includeFontPadding="false"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="@color/text_quiet"
+            android:textSize="10dp" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp">
+
+            <View
+                android:id="@+id/menu_pill"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:background="@drawable/pill_cream" />
+
+            <LinearLayout
+                android:id="@+id/menu_options"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </FrameLayout>
+    </LinearLayout>
+</FrameLayout>

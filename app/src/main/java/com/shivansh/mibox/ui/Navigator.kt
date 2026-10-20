@@ -91,6 +91,23 @@ class Navigator(
         if (n == 0) go(0, 0, animate = false) else go(row, col.coerceIn(0, n - 1), animate = false)
     }
 
+    /** Focus in from outside (the tab bar): the remembered card, else the first row that has cards. */
+    fun enter(direction: Int): Boolean {
+        val r = if (count(row) > 0) row else rows.indices.firstOrNull { count(it) > 0 } ?: return false
+        go(r, memory[r].coerceAtMost(count(r) - 1), direction = direction)
+        return true
+    }
+
+    /** Forgets every position and slides the rows home without taking focus (new lists in the rows). */
+    fun reset() {
+        row = 0
+        col = 0
+        for (r in rows.indices) {
+            memory[r] = 0
+            rows[r]?.list?.scrollToPosition(0)
+        }
+    }
+
     /** Back to the hero with every row slid home, like pressing Home on Google TV. */
     fun home() {
         for (r in rows.indices) {
