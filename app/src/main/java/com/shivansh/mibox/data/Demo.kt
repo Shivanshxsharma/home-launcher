@@ -64,8 +64,13 @@ data class Show(
     val detailed: Boolean = true,
     /** YouTube keys of its trailers, best first; the player moves on when one won't play here. */
     val trailers: List<String> = emptyList(),
+    /** TMDB's user score out of 10; 0 when too few people have rated it to mean much. */
+    val score: Float = 0f,
 ) {
     val serviceColor: Int get() = provider?.color ?: 0xFF9A96A3.toInt()
+
+    /** The score to one decimal ("8.4"), or "" without one. */
+    val scoreLabel: String get() = if (score > 0f) (Math.round(score * 10) / 10f).toString() else ""
 
     /** This title on a TMDB list, e.g. "watchlist:tv:1399". */
     fun listKey(list: String) = "$list:${mediaType.api}:$tmdbId"

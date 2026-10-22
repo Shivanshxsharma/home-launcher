@@ -22,3 +22,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "mibox-launcher"
 include(":app")
+// A second launcher with a different layout; shares the Home launcher's data code (see maximal/build.gradle.kts).
+include(":maximal")

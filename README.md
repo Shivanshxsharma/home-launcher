@@ -30,6 +30,7 @@
 - **Trailers in place.** Trailers play full-screen inside the launcher, and Back drops you right where you were.
 - **Hold OK on anything.** On a show you can add it to a list, favorite it, play its trailer or open its app. On an app you can add it to Home, move it or remove it.
 - **Only the apps you want.** The Home row shows your favorite apps, in your order, and the Apps tab has everything else.
+- **Scores at a glance.** TMDB's user score (★ 8.4) sits next to the year and genres on the banner and on every title you focus.
 - **India first.** Availability comes from TMDB's India listings for Netflix, Prime Video, JioHotstar, SonyLIV, ZEE5 and Apple TV.
 
 ## A closer look
@@ -70,6 +71,20 @@ Browsing works like the PS5 home screen. Up from the posters is the genre strip,
     <td align="center"><b>Apps</b>: hold OK on one to put it on Home</td>
   </tr>
 </table>
+
+## Maximal, a second launcher
+
+Maximal is a separate app in the same repository, for when you want something calmer. One title fills the screen: a big wide title at the bottom left, its storyline at the bottom right, and a round Play button in the middle. A glass sidebar on the left holds Home, Shows, Movies, Apps and Search, and a rail of posters runs down the right.
+
+<img src="docs/screenshots/maximal.jpg" alt="Maximal on Home: The Apothecary Diaries full-screen, with the sidebar on the left, the poster rail on the right, and ★ 8.7 · 2023 · 1 season · Netflix under the title" width="100%">
+
+<img src="docs/screenshots/maximal-movies.jpg" alt="Maximal on Movies: Tenzing full-screen with ★ 8.4 · 2026 · 2h 6 mins · Apple TV under the title, and trending films on the rail" width="100%">
+
+- **Three columns on the D-pad.** Left and right move between the sidebar, the title and the rail; up and down move within one.
+- **Same data as Home Launcher.** It shares Home Launcher's TMDB code, so it has the same trending titles, genres, search, trailers and watchlist. Connect TMDB from **Profile** by scanning the code with your phone.
+- **Built for the same box.** Shading is baked into the art, panels use pre-blurred glass, and nothing redraws while you're idle. On the Mi Box 4K, moving through the rail renders at a median of 5.7 ms a frame.
+
+Install it next to Home Launcher, or on its own. With both installed, Android asks which one to use the next time you press Home. There's no Maximal APK in the releases yet, so for now build it as described under [Build it yourself](#build-it-yourself).
 
 ## On the remote
 
@@ -121,7 +136,7 @@ You need JDK 17 or newer and the Android SDK (platform 37).
 ./gradlew assembleRelease -PpublicBuild
 ```
 
-That builds an APK with no key inside; you connect one from your phone as above. For your own builds you can bake a key in instead: put `tmdb.apiKey=YOUR_KEY` in `local.properties` (git ignores that file) and leave out `-PpublicBuild`. Don't share an APK built that way, because anyone can read the key out of it.
+That builds both launchers: Home Launcher at `app/build/outputs/apk/release/` and Maximal at `maximal/build/outputs/apk/release/`. Each APK has no key inside; you connect one from your phone as above. For your own builds you can bake a key in instead: put `tmdb.apiKey=YOUR_KEY` in `local.properties` (git ignores that file) and leave out `-PpublicBuild`. Don't share an APK built that way, because anyone can read the key out of it.
 
 ## Under the hood
 
@@ -133,7 +148,13 @@ app/src/main/java/com/shivansh/mibox/
 ├── data/                installed apps, favorites, demo content
 │   └── tmdb/            TMDB client, key, phone setup page, catalog, search, lists, sign-in
 └── ui/                  banner, focus cards, PS5-style pages, keyboard, menu, glass, backdrops
+
+maximal/src/main/java/com/shivansh/mibox/maximal/
+├── MaximalActivity.kt   sidebar, title and rail, and the keys between them
+└── ui/                  sidebar, poster rail, title block, profile, glass backdrops
 ```
+
+Maximal compiles Home Launcher's `data/` package at build time (see `maximal/build.gradle.kts`), so both launchers read TMDB the same way.
 
 - **Kotlin**, `minSdk 28` (Android 9), no Compose and no image-loading library.
 - **TMDB v3** for titles, art, logos, trailers, India watch providers and your lists, with **ZXing** for the sign-in QR code.

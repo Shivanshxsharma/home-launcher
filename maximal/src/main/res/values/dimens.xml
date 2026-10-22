@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The sidebar takes about 9% of the width, the rail about 16%. -->
+    <dimen name="sidebar_width">88dp</dimen>
+    <dimen name="rail_width">150dp</dimen>
+    <!-- Where words over the art start and end: 40dp in from each panel. -->
+    <dimen name="art_margin_start">128dp</dimen>
+    <dimen name="art_margin_end">190dp</dimen>
+</resources>

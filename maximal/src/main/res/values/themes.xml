@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Maximal" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <!-- Dark from the first frame; removed once the art covers the screen. -->
+        <item name="android:windowBackground">@color/night</item>
+        <item name="android:colorBackground">@color/night</item>
+        <item name="android:colorAccent">@color/ink</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowShowWallpaper">false</item>
+        <!-- Focus is drawn by the launcher; no system highlight on top. -->
+        <item name="android:defaultFocusHighlightEnabled">false</item>
+    </style>
+
+    <style name="Theme.Maximal.Trailer">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+    </style>
+
+    <!-- Small letter-spaced caps: genre tags, captions, section labels. -->
+    <style name="Caps">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/archivo_medium</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:letterSpacing">0.2</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/label</item>
+        <item name="android:textSize">9.5sp</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <!-- A sidebar entry: small, airy, left-aligned. -->
+    <style name="NavLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">36dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">18dp</item>
+        <item name="android:fontFamily">@font/archivo_regular</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:letterSpacing">0.04</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/quiet</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+</resources>

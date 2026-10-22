@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A wide, heavy M on night, like the sidebar's logo. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#FF050507"
+        android:pathData="M10,0h28a10,10 0,0 1,10 10v28a10,10 0,0 1,-10 10h-28a10,10 0,0 1,-10 -10v-28a10,10 0,0 1,10 -10z" />
+    <path
+        android:fillColor="#FFF5F3EE"
+        android:pathData="M9,34V14h7l8,11 8,-11h7v20h-6.5V23.5l-8.5,11.2 -8.5,-11.2V34z" />
+</vector>

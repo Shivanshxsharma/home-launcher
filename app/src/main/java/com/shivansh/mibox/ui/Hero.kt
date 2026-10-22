@@ -42,6 +42,8 @@ class Hero(
     private val genre: TextView = root.findViewById(R.id.hero_genre)
     private val year: TextView = root.findViewById(R.id.hero_year)
     private val rating: TextView = root.findViewById(R.id.hero_rating)
+    private val score: TextView = root.findViewById(R.id.hero_score)
+    private val scoreGap: View = root.findViewById(R.id.hero_score_gap)
     private val blurb: TextView = root.findViewById(R.id.hero_blurb)
     private val actions: View = root.findViewById(R.id.hero_actions)
     private val playWrap: View = root.findViewById(R.id.hero_play_wrap)
@@ -141,6 +143,9 @@ class Hero(
         year.text = slide.year
         rating.text = slide.rating
         rating.visibility = if (slide.rating.isEmpty()) View.GONE else View.VISIBLE
+        score.text = scoreText(show)
+        score.visibility = if (score.text.isEmpty()) View.GONE else View.VISIBLE
+        scoreGap.visibility = score.visibility
         blurb.text = slide.blurb
         playLabel.text = slide.play
         playGlow.drawable?.setTint(Palette.alpha(show.tint, 0.5f))

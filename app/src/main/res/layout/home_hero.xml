@@ -128,6 +128,17 @@
                 android:paddingBottom="1.5dp"
                 android:textColor="@color/ink"
                 android:textSize="8dp" />
+
+            <TextView
+                android:id="@+id/hero_score_gap"
+                style="@style/MetaText.Separator" />
+
+            <!-- TMDB's user score, "★ 8.4"; gone with its separator when there isn't one. -->
+            <TextView
+                android:id="@+id/hero_score"
+                style="@style/MetaText"
+                android:fontFamily="@font/geist_semibold"
+                android:textColor="@color/ink" />
         </LinearLayout>
 
         <TextView

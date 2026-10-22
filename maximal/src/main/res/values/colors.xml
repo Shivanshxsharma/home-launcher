@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="night">#FF050507</color>
+    <color name="ink">#FFF5F3EE</color>
+    <color name="ink_soft">#E6F5F3EE</color>
+    <color name="ink_dark">#FF0A0A0C</color>
+    <color name="quiet">#FF9F9BA8</color>
+    <color name="label">#B3F5F3EE</color>
+    <color name="hairline">#26FFFFFF</color>
+    <!-- Dark tint over the glass panels, so the words on them read on any picture. -->
+    <color name="panel_veil">#99050507</color>
+</resources>

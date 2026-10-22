@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Maximal, at 1dp = 2 layout px (the box runs at 960x540dp). Back to front: the preview video,
+  full-bleed art (with the sidebar and rail glass cut from its blurred copy), the panels' dark
+  veils, the title and storyline over the art, the centre play button, then the sidebar and rail.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipChildren="false"
+    tools:background="@color/night">
+
+    <SurfaceView
+        android:id="@+id/preview_surface"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <FrameLayout
+        android:id="@+id/backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:forceHasOverlappingRendering="false">
+
+        <com.shivansh.mibox.maximal.ui.ArtSlot
+            android:id="@+id/slot_lower"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="invisible" />
+
+        <com.shivansh.mibox.maximal.ui.ArtSlot
+            android:id="@+id/slot_upper"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="invisible" />
+    </FrameLayout>
+
+    <View
+        android:id="@+id/veil_left"
+        android:layout_width="@dimen/sidebar_width"
+        android:layout_height="match_parent"
+        android:background="@color/panel_veil"
+        android:forceHasOverlappingRendering="false" />
+
+    <View
+        android:id="@+id/veil_right"
+        android:layout_width="@dimen/rail_width"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@color/panel_veil"
+        android:forceHasOverlappingRendering="false" />
+
+    <View
+        android:id="@+id/edge_left"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/sidebar_width"
+        android:background="@color/hairline" />
+
+    <View
+        android:id="@+id/edge_right"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:layout_marginEnd="@dimen/rail_width"
+        android:background="@color/hairline" />
+
+    <!-- Bottom left over the art: genre tags, the title, the runtime. -->
+    <LinearLayout
+        android:id="@+id/title_block"
+        android:layout_width="440dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="@dimen/art_margin_start"
+        android:layout_marginBottom="52dp"
+        android:forceHasOverlappingRendering="false"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/title_tags"
+            style="@style/Caps"
+            android:textColor="@color/ink_soft" />
+
+        <TextView
+            android:id="@+id/title_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/archivo_expanded_extrabold"
+            android:includeFontPadding="false"
+            android:letterSpacing="-0.01"
+            android:lineSpacingMultiplier="0.92"
+            android:maxLines="2"
+            android:textAllCaps="true"
+            android:textColor="@color/ink"
+            android:textSize="54sp" />
+
+        <TextView
+            android:id="@+id/title_runtime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/archivo_regular"
+            android:includeFontPadding="false"
+            android:letterSpacing="0.02"
+            android:textColor="@color/ink_soft"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- Bottom right of the art: the storyline. -->
+    <LinearLayout
+        android:id="@+id/storyline"
+        android:layout_width="196dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/art_margin_end"
+        android:layout_marginBottom="52dp"
+        android:forceHasOverlappingRendering="false"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/Caps"
+            android:text="@string/storyline"
+            android:textColor="@color/quiet" />
+
+        <TextView
+            android:id="@+id/storyline_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="9dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/archivo_regular"
+            android:lineHeight="18sp"
+            android:maxLines="4"
+            android:textColor="@color/ink_soft"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- The art area between the panels: the play button, or Search's keyboard, or Profile. -->
+    <FrameLayout
+        android:id="@+id/centre"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/sidebar_width"
+        android:layout_marginEnd="@dimen/rail_width"
+        android:clipChildren="false">
+
+        <View
+            android:id="@+id/centre_dim"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0"
+            android:background="#B3050507"
+            android:visibility="invisible" />
+
+        <LinearLayout
+            android:id="@+id/centre_column"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="166dp"
+            android:clipChildren="false"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:id="@+id/play"
+                android:layout_width="68dp"
+                android:layout_height="68dp">
+
+                <ImageView
+                    android:id="@+id/play_icon"
+                    android:layout_width="18dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="3dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_play" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:id="@+id/actions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:alpha="0"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="invisible" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/search_column"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="48dp"
+            android:layout_marginTop="74dp"
+            android:alpha="0"
+            android:orientation="vertical"
+            android:visibility="invisible">
+
+            <TextView
+                android:id="@+id/search_query"
+                android:layout_width="212dp"
+                android:layout_height="wrap_content"
+                android:ellipsize="start"
+                android:fontFamily="@font/archivo_medium"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:textColor="@color/ink"
+                android:textSize="17sp" />
+
+            <View
+                android:layout_width="212dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="10dp"
+                android:background="@color/hairline" />
+
+            <com.shivansh.mibox.maximal.ui.Keyboard
+                android:id="@+id/keyboard"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" />
+        </LinearLayout>
+
+        <include layout="@layout/profile_panel" />
+
+        <TextView
+            android:id="@+id/note"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="18dp"
+            android:alpha="0"
+            android:fontFamily="@font/archivo_medium"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/ink"
+            android:textSize="11.5sp"
+            android:visibility="invisible" />
+    </FrameLayout>
+
+    <!-- Left: logo, sections, then Profile and Settings. -->
+    <FrameLayout
+        android:id="@+id/sidebar"
+        android:layout_width="@dimen/sidebar_width"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:forceHasOverlappingRendering="false">
+
+        <View
+            android:id="@+id/sidebar_pill"
+            android:layout_width="match_parent"
+            android:layout_height="34dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:alpha="0"
+            android:visibility="invisible" />
+
+        <View
+            android:id="@+id/sidebar_bar"
+            android:layout_width="2dp"
+            android:layout_height="16dp"
+            android:layout_gravity="end"
+            android:background="@color/ink" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingTop="30dp"
+            android:paddingBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="18dp"
+                android:fontFamily="@font/archivo_expanded_extrabold"
+                android:includeFontPadding="false"
+                android:text="@string/logo"
+                android:textColor="@color/ink"
+                android:textSize="24sp" />
+
+            <LinearLayout
+                android:id="@+id/nav_sections"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="58dp"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_home" />
+
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_shows" />
+
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_movies" />
+
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_apps" />
+
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_search" />
+            </LinearLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="18dp"
+                android:layout_marginEnd="18dp"
+                android:layout_marginBottom="12dp"
+                android:background="@color/hairline" />
+
+            <LinearLayout
+                android:id="@+id/nav_account"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_profile" />
+
+                <TextView
+                    style="@style/NavLabel"
+                    android:text="@string/nav_settings" />
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Right: Search and the bell, then the section's posters, top to bottom. -->
+    <!-- Clips its children, which is what keeps the scrolling list inside its own box. -->
+    <FrameLayout
+        android:id="@+id/rail"
+        android:layout_width="@dimen/rail_width"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:clipChildren="true"
+        android:forceHasOverlappingRendering="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp">
+
+            <ImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_search" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/archivo_regular"
+                android:includeFontPadding="false"
+                android:letterSpacing="0.04"
+                android:text="@string/rail_search"
+                android:textColor="@color/label"
+                android:textSize="12sp" />
+
+            <ImageView
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_bell" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/rail_caption"
+            style="@style/Caps"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="66dp"
+            android:textColor="@color/quiet" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rail_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="86dp"
+            android:clipChildren="true"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:scrollbars="none" />
+
+        <TextView
+            android:id="@+id/rail_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="110dp"
+            android:fontFamily="@font/archivo_regular"
+            android:lineHeight="17sp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:textColor="@color/label"
+            android:textSize="11sp"
+            android:visibility="gone" />
+
+        <View
+            android:id="@+id/rail_track"
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:layout_marginTop="96dp"
+            android:layout_marginEnd="7dp"
+            android:layout_marginBottom="24dp"
+            android:background="@color/hairline" />
+
+        <View
+            android:id="@+id/rail_thumb"
+            android:layout_width="2dp"
+            android:layout_height="36dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="96dp"
+            android:layout_marginEnd="7dp"
+            android:background="@color/ink" />
+    </FrameLayout>
+</FrameLayout>

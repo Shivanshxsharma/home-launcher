@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Profile, over the art: connect TMDB (scan, paste the key on the phone), sign in (scan, approve
+  on the phone), or the signed-in account with Sign out and Use a different key.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/profile_panel"
+    android:layout_width="480dp"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:alpha="0"
+    android:forceHasOverlappingRendering="false"
+    android:orientation="vertical"
+    android:padding="26dp"
+    android:visibility="invisible">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/Caps"
+                android:text="@string/profile_tag"
+                android:textColor="@color/quiet" />
+
+            <TextView
+                android:id="@+id/profile_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/archivo_expanded_extrabold"
+                android:includeFontPadding="false"
+                android:textAllCaps="true"
+                android:textColor="@color/ink"
+                android:textSize="22sp" />
+
+            <TextView
+                android:id="@+id/profile_line"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/archivo_regular"
+                android:lineHeight="18sp"
+                android:textColor="@color/ink_soft"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:id="@+id/profile_status_row"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:id="@+id/profile_dot"
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:background="@drawable/dot" />
+
+                <TextView
+                    android:id="@+id/profile_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:fontFamily="@font/archivo_medium"
+                    android:includeFontPadding="false"
+                    android:textColor="@color/ink"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/profile_qr_column"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:id="@+id/profile_qr_card"
+                android:layout_width="128dp"
+                android:layout_height="128dp"
+                android:padding="8dp">
+
+                <ImageView
+                    android:id="@+id/profile_qr"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/connect_title"
+                    android:scaleType="fitXY" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/profile_url"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/archivo_medium"
+                android:includeFontPadding="false"
+                android:textColor="@color/quiet"
+                android:textSize="8.5sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/profile_actions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:orientation="vertical" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:fontFamily="@font/archivo_regular"
+        android:text="@string/tmdb_notice"
+        android:textColor="@color/quiet"
+        android:textSize="8.5sp" />
+</LinearLayout>

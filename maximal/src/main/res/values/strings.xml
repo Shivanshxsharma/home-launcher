@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Maximal</string>
+    <string name="logo">M</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_shows">Shows</string>
+    <string name="nav_movies">Movies</string>
+    <string name="nav_apps">Apps</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_settings">Settings</string>
+
+    <string name="rail_search">Search</string>
+    <string name="caption_my_shows">My shows</string>
+    <string name="caption_on_your_apps">On your apps</string>
+    <string name="caption_shows">Trending shows</string>
+    <string name="caption_movies">Trending films</string>
+    <string name="caption_apps">Apps</string>
+    <string name="caption_trending">Trending now</string>
+    <string name="caption_results">Results</string>
+    <string name="empty_movies">Connect TMDB in Profile to see films.</string>
+    <string name="empty_search">No shows or films match “%1$s”.</string>
+    <string name="empty_offline">Can\'t reach TMDB. Connect it in Profile.</string>
+
+    <string name="storyline">Storyline</string>
+    <string name="play">Play</string>
+    <string name="trailer">Trailer</string>
+    <string name="add_to_list">Add to list</string>
+    <string name="in_list">In your list</string>
+    <string name="app_tag">App</string>
+    <string name="app_open">Press OK to open</string>
+    <string name="app_line">%1$d apps on this box</string>
+    <string name="minutes">%1$d mins</string>
+    <string name="hours_minutes">%1$dh %2$d mins</string>
+    <string name="hours">%1$dh</string>
+
+    <string name="note_added">Added to your list</string>
+    <string name="note_removed">Removed from your list</string>
+    <string name="note_failed">Couldn\'t reach TMDB. Try again in a moment.</string>
+    <string name="provider_missing">%1$s isn\'t installed on this box</string>
+    <string name="not_streaming">Not on your streaming apps in India</string>
+
+    <string name="search_placeholder">Shows, films, people</string>
+    <string name="key_space">Space</string>
+    <string name="key_clear">Clear</string>
+    <string name="search_voice_prompt">Say a show, a film or an actor</string>
+    <string name="search_no_voice">This box can\'t listen for voice searches.</string>
+
+    <string name="profile_tag">Profile</string>
+    <string name="connect_title">Connect TMDB</string>
+    <string name="connect_line">Shows, films, artwork and trailers come from TMDB, which is free. Scan the code with a phone on the same Wi-Fi as this TV, follow the link to get a free key, and paste it in.</string>
+    <string name="connect_line_replace">A new key replaces the one this TV uses now. Scan the code with a phone on the same Wi-Fi and paste it in, or press Back to keep the current key.</string>
+    <string name="connect_starting">Getting the code ready…</string>
+    <string name="connect_waiting">Waiting for your phone…</string>
+    <string name="connect_checking">Checking the key with TMDB…</string>
+    <string name="connect_refused">TMDB didn\'t accept that key. Try again on your phone…</string>
+    <string name="connect_offline">Couldn\'t reach TMDB to check the key. Try again on your phone…</string>
+    <string name="connect_done">Connected to TMDB</string>
+    <string name="connect_no_network">This TV isn\'t on a network yet. Trying again…</string>
+    <string name="connect_or_open">or open %1$s</string>
+    <string name="signin_title">Sign in with TMDB</string>
+    <string name="signin_line">Scan the code with your phone, sign in to TMDB and tap Approve. Your watchlist becomes My shows here.</string>
+    <string name="signin_getting">Getting a sign-in code…</string>
+    <string name="signin_waiting">Waiting for you to approve on your phone…</string>
+    <string name="signin_offline">Can\'t reach TMDB right now. Trying again…</string>
+    <string name="signed_in_title">Signed in</string>
+    <string name="signed_in_as">Signed in to TMDB as %1$s.</string>
+    <string name="signed_in_line">Your TMDB watchlist is My shows on Home.</string>
+    <string name="action_sign_out">Sign out of TMDB</string>
+    <string name="action_change_key">Use a different TMDB key</string>
+    <string name="note_connected">Connected to TMDB. Loading shows…</string>
+    <string name="note_signed_in">Signed in as %1$s</string>
+    <string name="note_signed_out">Signed out of TMDB</string>
+    <string name="note_key_refused">TMDB didn\'t accept the key. Connect a new one in Profile.</string>
+    <string name="tmdb_notice">This product uses the TMDB API but is not endorsed or certified by TMDB.</string>
+
+    <string name="trailer_heading">Trailer · %1$s</string>
+    <string name="trailer_hint">OK pause · ◀ ▶ 10 seconds · Back close</string>
+    <string name="trailer_unavailable">YouTube won\'t play this trailer here</string>
+</resources>

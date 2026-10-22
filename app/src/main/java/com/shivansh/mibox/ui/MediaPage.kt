@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
+import android.text.SpannableStringBuilder
 import android.view.Gravity
 import android.view.View
 import android.widget.HorizontalScrollView
@@ -223,7 +224,13 @@ class MediaPage(
         if (url != null && logos.get(url) == null) {
             logos.fetch(url) { art -> if (art != null && shown?.logo == url) logos.show(logo, title, art, LOGO_W, LOGO_H) }
         }
-        meta.text = listOf(show.year, show.genres, show.length).filter { it.isNotEmpty() }.joinToString("  ·  ")
+        meta.text = SpannableStringBuilder().apply {
+            for (part in listOf(scoreText(show), show.year, show.genres, show.length)) {
+                if (part.isEmpty()) continue
+                if (isNotEmpty()) append("  ·  ")
+                append(part)
+            }
+        }
         overview.text = show.overview
         overview.visibility = if (show.overview.isEmpty()) View.GONE else View.VISIBLE
     }

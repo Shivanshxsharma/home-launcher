@@ -5,6 +5,9 @@ import android.content.Context
 import android.graphics.Outline
 import android.graphics.Typeface
 import android.os.Process
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +15,7 @@ import android.view.ViewOutlineProvider
 import android.view.animation.PathInterpolator
 import android.widget.TextView
 import com.shivansh.mibox.R
+import com.shivansh.mibox.data.Show
 import com.shivansh.mibox.data.TitleStyle
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -39,6 +43,9 @@ object Palette {
     const val NIGHT = 0xFF050507.toInt()
     const val INK = 0xFFF5F3EE.toInt()
     const val CARD = 0xFF121216.toInt()
+
+    /** The star beside a TMDB score. */
+    const val STAR = 0xFFF5C451.toInt()
 
     /** [rgb] at [alpha] (0..1). */
     fun alpha(rgb: Int, alpha: Float): Int = ((alpha * 255).roundToInt() shl 24) or (rgb and 0xFFFFFF)
@@ -90,6 +97,13 @@ object Workers {
             r.run()
         }, name)
     }
+}
+
+/** TMDB's score as "★ 8.4" with a gold star, or "" when the title has none. */
+fun scoreText(show: Show): CharSequence {
+    val label = show.scoreLabel
+    if (label.isEmpty()) return ""
+    return SpannableString("★ $label").apply { setSpan(ForegroundColorSpan(Palette.STAR), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
 }
 
 fun TextView.textPx(design: Float) = setTextSize(TypedValue.COMPLEX_UNIT_PX, Ui.px(design))

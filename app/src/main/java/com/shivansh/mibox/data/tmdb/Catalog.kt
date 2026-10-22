@@ -237,6 +237,7 @@ class Catalog(private val tmdb: Tmdb, private val account: Account) {
             overview = show.overview.ifEmpty { d.str("overview").orEmpty() },
             detailed = true,
             trailers = trailers(d),
+            score = if (show.score > 0f) show.score else score(d),
         )
     }
 
@@ -346,8 +347,14 @@ class Catalog(private val tmdb: Tmdb, private val account: Account) {
             length = d?.let { length(it, type) }.orEmpty(),
             detailed = d != null,
             trailers = trailers(d),
+            score = score(item, d),
         )
     }
+
+    /** The user score from the first record with enough votes to go by, or 0. */
+    private fun score(vararg records: JSONObject?): Float =
+        records.firstOrNull { it != null && it.optInt("vote_count") >= MIN_VOTES }
+            ?.optDouble("vote_average", 0.0)?.toFloat() ?: 0f
 
     /**
      * YouTube trailers, best first: trailers over teasers, official over fan-made, newest first. A
@@ -483,6 +490,9 @@ class Catalog(private val tmdb: Tmdb, private val account: Account) {
     private companion object {
         const val MAX_HERO = 8
         const val MAX_TRAILERS = 5
+
+        /** Fewer votes than this and the score says little (a new show at 10.0 from three people). */
+        const val MIN_VOTES = 25
         const val MAX_ROW = 12
 
         /** Trending is read three pages deep (60 titles), so most genres find some of their own. */
