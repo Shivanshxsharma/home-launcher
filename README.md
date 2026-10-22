@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Shivanshxsharma/home-launcher/releases/latest"><b>Download the APK</b></a> · Android TV 9 or newer
+  <a href="https://github.com/Shivanshxsharma/home-launcher/releases/latest"><b>Download Home Launcher or Maximal</b></a> · Android TV 9 or newer
 </p>
 
 <p align="center">
@@ -84,7 +84,7 @@ Maximal is a separate app in the same repository, for when you want something ca
 - **Same data as Home Launcher.** It shares Home Launcher's TMDB code, so it has the same trending titles, genres, search, trailers and watchlist. Connect TMDB from **Profile** by scanning the code with your phone.
 - **Built for the same box.** Shading is baked into the art, panels use pre-blurred glass, and nothing redraws while you're idle. On the Mi Box 4K, moving through the rail renders at a median of 5.7 ms a frame.
 
-Install it next to Home Launcher, or on its own. With both installed, Android asks which one to use the next time you press Home. There's no Maximal APK in the releases yet, so for now build it as described under [Build it yourself](#build-it-yourself).
+To try it, download `Maximal-0.2.0.apk` from the [latest release](https://github.com/Shivanshxsharma/home-launcher/releases/latest) and install it the same way as Home Launcher (see [Install it](#install-it)). It works next to Home Launcher or on its own. With both installed, Android asks which one to use the next time you press Home.
 
 ## On the remote
 
@@ -110,15 +110,15 @@ The Mi Box 4K has a Mali-450 GPU and 2 GB of RAM, so smoothness was designed in 
 
 ## Install it
 
-1. **Download** `HomeLauncher-0.4.0.apk` from the [latest release](https://github.com/Shivanshxsharma/home-launcher/releases/latest).
+1. **Download** `HomeLauncher-0.5.0.apk` from the [latest release](https://github.com/Shivanshxsharma/home-launcher/releases/latest). For Maximal, use `Maximal-0.2.0.apk` instead, or install both.
 2. **Install it on the TV.** Turn on network debugging on the TV (Settings → Device Preferences → About → press Build seven times, then Developer options → USB debugging), then from a computer on the same Wi-Fi:
    ```bash
    adb connect <tv-ip>:5555
-   adb install HomeLauncher-0.4.0.apk
+   adb install HomeLauncher-0.5.0.apk
    ```
    A file manager or a "send files to TV" app works too.
-3. **Connect TMDB.** Open Home Launcher and it starts on the **Connect TMDB** page. Scan the code with a phone on the same Wi-Fi, follow the link on your phone to get a free TMDB API key, and paste it in. The TV checks the key and connects. The key is kept only on the TV.
-4. **Optional: sign in** on the Library tab, the same way, to bring in your TMDB watchlist and favorites.
+3. **Connect TMDB.** Open Home Launcher and it starts on the **Connect TMDB** page. Scan the code with a phone on the same Wi-Fi, follow the link on your phone to get a free TMDB API key, and paste it in. The TV checks the key and connects. The key is kept only on the TV. In Maximal, open **Profile** at the bottom of the sidebar instead.
+4. **Optional: sign in** on the Library tab (in Maximal, Profile), the same way, to bring in your TMDB watchlist and favorites.
 5. **Make it the Home screen.** Android TV's built-in launcher always takes priority over installed ones, so switch it off:
    ```bash
    adb shell pm disable-user --user 0 com.google.android.tvlauncher
@@ -126,7 +126,7 @@ The Mi Box 4K has a Mali-450 GPU and 2 GB of RAM, so smoothness was designed in 
    To go back, run `adb shell pm enable com.google.android.tvlauncher`, or on the TV go to **Settings → Apps → See all apps → Show system apps → Android TV Home → Enable**.
 6. **Optional: the remote's Apps button.** Android TV only sends this button to its own launcher. To have it open this launcher's Apps tab instead, go to **Settings → Device Preferences → Accessibility** and turn on **Home Launcher: Apps button**. That service listens for that one button and reads nothing on screen.
 
-The APK is signed with a development key. If you built and installed your own copy before, uninstall it first.
+The APKs are signed with a development key. If you built and installed your own copy before, uninstall it first. Version 0.5.0 installs over 0.4.0 and keeps your key and sign-in.
 
 ### Build it yourself
 
