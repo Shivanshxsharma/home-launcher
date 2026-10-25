@@ -106,16 +106,14 @@ class InstalledApps(private val context: Context) {
         private const val KEY = "list.v1"
         private const val FAVORITES = "favorites.v1"
 
-        /** Every app, then Settings and All apps: the Apps tab's grid. */
-        fun tiles(apps: List<AppEntry>, settingsLabel: String, allAppsLabel: String): List<AppTile> =
-            apps.map { AppTile(AppTile.Kind.APP, it.label, it) } +
-                AppTile(AppTile.Kind.SETTINGS, settingsLabel) +
-                AppTile(AppTile.Kind.ALL_APPS, allAppsLabel)
+        /** Every app, then All apps: the Apps tab's grid. Settings lives in the tab bar's corner. */
+        fun tiles(apps: List<AppEntry>, allAppsLabel: String): List<AppTile> =
+            apps.map { AppTile(AppTile.Kind.APP, it.label, it) } + AppTile(AppTile.Kind.ALL_APPS, allAppsLabel)
 
-        /** The Home row: the favorites that are installed, in the user's order, then Settings and All apps. */
-        fun homeTiles(apps: List<AppEntry>, favorites: List<String>, settingsLabel: String, allAppsLabel: String): List<AppTile> {
+        /** The Home row: the favorites that are installed, in the user's order, then All apps. */
+        fun homeTiles(apps: List<AppEntry>, favorites: List<String>, allAppsLabel: String): List<AppTile> {
             val byPackage = apps.associateBy { it.packageName }
-            return tiles(favorites.mapNotNull { byPackage[it] }, settingsLabel, allAppsLabel)
+            return tiles(favorites.mapNotNull { byPackage[it] }, allAppsLabel)
         }
     }
 }

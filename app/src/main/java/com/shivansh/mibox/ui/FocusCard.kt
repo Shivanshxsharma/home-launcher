@@ -57,8 +57,9 @@ object Cards {
 /**
  * A rounded card with tvOS-style focus: it springs up, tilts toward the direction focus came from
  * and settles, a soft glare drifts across it and a band of light sweeps over once. A deep shadow
- * and a faint glow in the show's tint sit under it, and a lit keyline traces its edge. The caption
- * underneath steps aside (or fades in) instead of being covered.
+ * and a faint glow in the show's tint sit under it, a lit keyline traces its edge, and a solid
+ * white outline stands just off it, Mi TV style, so the focused card reads from across the room.
+ * The caption underneath steps aside (or fades in) instead of being covered.
  *
  * Cheap on purpose: every effect is a transform or alpha on its own view, the glare and sweep are
  * shaders moved by a matrix inside the card's rounded shape (no clipping), and the 3D tilt only
@@ -80,6 +81,7 @@ class FocusCard(
     private val glow = ImageView(context)
     private val sheen = Sheen(spec.radius, spec.bandAlpha)
     private val keyline = View(context)
+    private val outline = View(context)
     private var lit = false
 
     private val growX = spring(DynamicAnimation.SCALE_X, 1f, 380f, 0.6f)
@@ -125,6 +127,16 @@ class FocusCard(
         keyline.alpha = KEYLINE_REST
         keyline.forceHasOverlappingRendering(false)
         lift.addView(keyline, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+
+        val gap = Ui.px(OUTLINE_GAP)
+        outline.background = GradientDrawable().apply {
+            cornerRadius = spec.radius + gap
+            setStroke(Ui.px(OUTLINE_WIDTH), Palette.INK)
+        }
+        outline.alpha = 0f
+        outline.visibility = INVISIBLE
+        outline.forceHasOverlappingRendering(false)
+        lift.addView(outline, outset(gap))
 
         caption = LayoutInflater.from(context).inflate(captionLayout, this, false)
         addView(caption, LayoutParams(spec.width, spec.captionHeight).apply { topMargin = spec.height })
@@ -197,6 +209,7 @@ class FocusCard(
         glow.fadeTo(light, 420)
         shadow.fadeTo(light, 420)
         keyline.animate().alpha(if (on) 1f else KEYLINE_REST).setDuration(320).setStartDelay(0).setInterpolator(Motion.EASE)
+        outline.fadeTo(light, if (on) 160 else 200)
         body.animate().alpha(if (on) 1f else DIMMED).setDuration(260).setStartDelay(0).setInterpolator(Motion.EASE)
         moveCaption(on)
         fadeGlare(on)
@@ -279,7 +292,7 @@ class FocusCard(
         for (s in arrayOf(growX, growY, tiltX, tiltY, nudgeX, nudgeY)) s.cancel()
         glareAnim?.cancel()
         sweepAnim?.cancel()
-        for (v in arrayOf(glow, shadow, keyline, body, caption)) v.animate().cancel()
+        for (v in arrayOf(glow, shadow, keyline, outline, body, caption)) v.animate().cancel()
         val scale = if (on) spec.lift else 1f
         lift.scaleX = scale
         lift.scaleY = scale
@@ -287,7 +300,7 @@ class FocusCard(
         lift.rotationY = 0f
         lift.translationX = 0f
         lift.translationY = 0f
-        for (v in arrayOf(glow, shadow)) {
+        for (v in arrayOf(glow, shadow, outline)) {
             v.alpha = if (on) 1f else 0f
             v.visibility = if (on) VISIBLE else INVISIBLE
         }
@@ -307,6 +320,10 @@ class FocusCard(
         /** Unfocused cards sit back a little: their face at 86%. */
         private const val DIMMED = 0.86f
         private const val KEYLINE_REST = 0.35f
+
+        /** The focus outline, in layout px: its stroke, and the gap between it and the card. */
+        private const val OUTLINE_WIDTH = 5
+        private const val OUTLINE_GAP = 7
         private const val GLARE_X = 0.3f
 
         /** Degrees of tilt as focus lands. */

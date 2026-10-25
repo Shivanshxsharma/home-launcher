@@ -30,6 +30,7 @@
 - **Trailers in place.** Trailers play full-screen inside the launcher, and Back drops you right where you were.
 - **Hold OK on anything.** On a show you can add it to a list, favorite it, play its trailer or open its app. On an app you can add it to Home, move it or remove it.
 - **Only the apps you want.** The Home row shows your favorite apps, in your order, and the Apps tab has everything else.
+- **A corner for the box.** Right of the tabs: a network pill (Wi-Fi, Ethernet or offline), a settings button, and your profile, with sign in and sign out for TMDB. The focused card wears a white outline, so it reads from across the room.
 - **Scores at a glance.** TMDB's user score (★ 8.4) sits next to the year and genres on the banner and on every title you focus.
 - **India first.** Availability comes from TMDB's India listings for Netflix, Prime Video, JioHotstar, SonyLIV, ZEE5 and Apple TV.
 
@@ -93,6 +94,7 @@ To try it, download `Maximal-0.2.0.apk` from the [latest release](https://github
 | **D-pad** | Moves focus. On the banner, left and right go across the buttons, then to the previous or next show. |
 | **OK** | Opens the app, show or tab in focus. |
 | **Hold OK** or **Menu** | Opens the options for that show or app. |
+| **Right past the last tab** | The corner: network settings, Android settings, and your profile (sign in or out, or use a different TMDB key). |
 | **Hold OK on the Library tab** | TMDB options: use a different key, or sign out. |
 | **Back** | Climbs up: from a row to the banner, from the banner to the tab bar, from another tab to Home. |
 | **Home** | Takes you back to the top of Home. |

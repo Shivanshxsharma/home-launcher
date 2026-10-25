@@ -18,6 +18,14 @@
     <string name="up_next_meta">%1$s · %2$s</string>
 
     <string name="tile_settings">Settings</string>
+    <string name="corner_network">Network</string>
+    <string name="corner_profile">Profile</string>
+    <string name="network_wifi">Wi-Fi</string>
+    <string name="network_ethernet">Ethernet</string>
+    <string name="network_offline">Offline</string>
+    <string name="profile_title">Profile</string>
+    <string name="profile_signed_out">Not signed in to TMDB</string>
+    <string name="profile_sign_in">Sign in to TMDB</string>
     <string name="tile_all_apps">All apps</string>
     <string name="shelf_from_shows">From your shows on %1$s</string>
     <string name="shelf_app">App</string>

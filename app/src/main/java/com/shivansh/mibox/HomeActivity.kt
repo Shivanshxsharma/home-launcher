@@ -9,6 +9,9 @@ import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -22,6 +25,7 @@ import android.view.SurfaceView
 import android.graphics.Rect
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.dynamicanimation.animation.DynamicAnimation
@@ -48,6 +52,7 @@ import com.shivansh.mibox.ui.AppArtSource
 import com.shivansh.mibox.ui.Backdrop
 import com.shivansh.mibox.ui.Cards
 import com.shivansh.mibox.ui.Connect
+import com.shivansh.mibox.ui.Corner
 import com.shivansh.mibox.ui.ContextMenu
 import com.shivansh.mibox.ui.FocusCard
 import com.shivansh.mibox.ui.Fonts
@@ -105,6 +110,11 @@ class HomeActivity : Activity(), Previews.Listener {
     private lateinit var appsRow: RecyclerView
     private lateinit var scroll: SpringAnimation
     private lateinit var tabBar: TabBar
+    private lateinit var corner: Corner
+    private lateinit var networkIcon: ImageView
+    private lateinit var networkLabel: TextView
+    private lateinit var profileView: TextView
+    private var networkWatch: ConnectivityManager.NetworkCallback? = null
     private lateinit var pageApps: View
     private lateinit var pageSearch: View
     private lateinit var searchPage: SearchPage
@@ -192,7 +202,7 @@ class HomeActivity : Activity(), Previews.Listener {
     private val enrichSoon = Runnable { enrichNext?.let(::enrich) }
 
     /** Where the remote's keys go: the home rows, the tab bar, another tab's page, or the hold-OK menu. */
-    private enum class Area { HOME, TABS, PAGE, MENU, MOVE }
+    private enum class Area { HOME, TABS, CORNER, PAGE, MENU, MOVE }
 
     private var area = Area.HOME
     private var page = Page.HOME
@@ -231,6 +241,11 @@ class HomeActivity : Activity(), Previews.Listener {
         scrimTop.background = LinearScrim(180f, shades(0.45f, 0f), floatArrayOf(0f, 1f))
         tabBar = findViewById(R.id.tabs)
         tabBar.background = Glass.control(Ui.px(60f), Palette.alpha(0xFFFFFF, 0.1f))
+        corner = Corner(listOf(findViewById(R.id.corner_network), findViewById(R.id.corner_settings), findViewById(R.id.corner_profile)))
+        networkIcon = findViewById(R.id.corner_network_icon)
+        networkLabel = findViewById(R.id.corner_network_label)
+        profileView = findViewById(R.id.corner_profile)
+        watchNetwork()
         chip.background = Glass.control(Ui.px(48f), Palette.alpha(Palette.NIGHT, 0.45f))
         pageApps = findViewById(R.id.page_apps)
         pageSearch = findViewById(R.id.page_search)
@@ -384,8 +399,9 @@ class HomeActivity : Activity(), Previews.Listener {
                 page == Page.SEARCH -> searchPage.refocus()
                 else -> focusGrid(gridFocus, View.FOCUS_DOWN)
             }
-            Area.HOME, Area.MENU, Area.MOVE -> Unit
+            Area.HOME, Area.CORNER, Area.MENU, Area.MOVE -> Unit
         }
+        paintProfile()
     }
 
     override fun onPause() {
@@ -404,6 +420,7 @@ class HomeActivity : Activity(), Previews.Listener {
     }
 
     override fun onDestroy() {
+        networkWatch?.let { getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(it) }
         launcherApps.unregisterCallback(appsCallback)
         super.onDestroy()
     }
@@ -422,6 +439,7 @@ class HomeActivity : Activity(), Previews.Listener {
             main.removeCallbacks(pageSettle)
             showPage(Page.HOME)
             area = Area.HOME
+            corner.leave()
             tabBar.setBarFocused(false)
             nav.home()
         }
@@ -478,6 +496,7 @@ class HomeActivity : Activity(), Previews.Listener {
                     when (area) {
                         Area.HOME -> homeMove(dRow, dCol, first)
                         Area.TABS -> tabsMove(dRow, dCol, first)
+                        Area.CORNER -> cornerMove(dRow, dCol)
                         Area.PAGE -> pageMove(dRow, dCol, first)
                         Area.MENU, Area.MOVE -> Unit
                     }
@@ -503,6 +522,10 @@ class HomeActivity : Activity(), Previews.Listener {
                     enterPage()
                 }
             }
+            return true
+        }
+        if (ok && area == Area.CORNER) {
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) openCorner()
             return true
         }
         if (ok && area == Area.TABS) {
@@ -567,6 +590,10 @@ class HomeActivity : Activity(), Previews.Listener {
                         true
                     }
                     Area.MENU, Area.MOVE -> true
+                    Area.CORNER -> {
+                        leaveCorner()
+                        true
+                    }
                     Area.TABS -> when {
                         page != Page.HOME -> {
                             main.removeCallbacks(pageSettle)
@@ -615,6 +642,8 @@ class HomeActivity : Activity(), Previews.Listener {
             dCol != 0 -> if (tabBar.moveFocus(dCol)) {
                 main.removeCallbacks(pageSettle)
                 main.postDelayed(pageSettle, TAB_SETTLE_MS)
+            } else if (dCol > 0) {
+                enterCorner()
             } else if (first) {
                 tabBar.bump(dCol)
             }
@@ -653,6 +682,109 @@ class HomeActivity : Activity(), Previews.Listener {
             dRow < 0 -> enterTabs()
             first -> (focused as? FocusCard)?.bump(dCol, dRow)
         }
+    }
+
+    // ---- The corner: network, settings, profile ----
+
+    private fun enterCorner() {
+        area = Area.CORNER
+        main.removeCallbacks(toAmbient)
+        tabBar.setBarFocused(false)
+        corner.enter()
+    }
+
+    /** Back, or left off its first item: return to the tab bar. */
+    private fun leaveCorner() {
+        corner.leave()
+        enterTabs()
+    }
+
+    private fun cornerMove(dRow: Int, dCol: Int) {
+        when {
+            dCol != 0 -> if (!corner.move(dCol) && dCol < 0) leaveCorner()
+            dRow > 0 -> {
+                corner.leave()
+                main.removeCallbacks(pageSettle)
+                showPage(tabBar.focused)
+                enterPage()
+            }
+        }
+    }
+
+    private fun openCorner() {
+        val from = findViewById<View>(R.id.chrome)
+        when (corner.focused) {
+            Corner.NETWORK -> if (!start(Intent(Settings.ACTION_WIFI_SETTINGS), from)) start(Intent(Settings.ACTION_SETTINGS), from)
+            Corner.SETTINGS -> start(Intent(Settings.ACTION_SETTINGS), from)
+            Corner.PROFILE -> openProfileMenu()
+        }
+    }
+
+    /** Shows how the box is online: Wi-Fi, Ethernet or offline, kept current as it changes. */
+    private fun watchNetwork() {
+        val cm = getSystemService(ConnectivityManager::class.java)
+        paintNetwork(cm.activeNetwork?.let { cm.getNetworkCapabilities(it) })
+        val watch = object : ConnectivityManager.NetworkCallback() {
+            override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
+                runOnUiThread { if (!isDestroyed) paintNetwork(caps) }
+            }
+
+            override fun onLost(network: Network) {
+                runOnUiThread { if (!isDestroyed) paintNetwork(null) }
+            }
+        }
+        cm.registerDefaultNetworkCallback(watch)
+        networkWatch = watch
+    }
+
+    private fun paintNetwork(caps: NetworkCapabilities?) {
+        val (icon, label) = when {
+            caps == null -> R.drawable.ic_wifi_off to R.string.network_offline
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> R.drawable.ic_ethernet to R.string.network_ethernet
+            else -> R.drawable.ic_wifi to R.string.network_wifi
+        }
+        networkIcon.setImageResource(icon)
+        networkLabel.setText(label)
+    }
+
+    /** The profile circle: the TMDB username's first letter once signed in. */
+    private fun paintProfile() {
+        val name = account.username
+        profileView.text = if (account.signedIn && name.isNotEmpty()) name.take(1).uppercase() else getString(R.string.profile_initial)
+    }
+
+    /** The profile menu: sign in or out of TMDB, or connect a different key. */
+    private fun openProfileMenu() {
+        val items = ArrayList<ContextMenu.Item>()
+        if (account.signedIn) {
+            items += ContextMenu.Item(R.drawable.ic_check, getString(R.string.tmdb_sign_out)) {
+                toLibrary()
+                signOut()
+            }
+        } else {
+            items += ContextMenu.Item(R.drawable.ic_library, getString(R.string.profile_sign_in)) { toLibrary() }
+        }
+        items += ContextMenu.Item(R.drawable.ic_library, getString(R.string.tmdb_change_key)) {
+            toLibrary()
+            changeKey()
+        }
+        val title = if (account.signedIn && account.username.isNotEmpty()) account.username else getString(R.string.profile_title)
+        val line = if (account.signedIn) getString(R.string.signin_done, account.username) else getString(R.string.profile_signed_out)
+        menuFrom = area
+        area = Area.MENU
+        menu.open(title, line, items)
+    }
+
+    /** From the corner to the Library tab, where signing in and connecting a key happen. */
+    private fun toLibrary() {
+        corner.leave()
+        menuFrom = Area.TABS
+        main.removeCallbacks(pageSettle)
+        tabBar.focusOn(Page.LIBRARY)
+        tabBar.setBarFocused(true)
+        tabBar.requestFocus()
+        page = Page.NONE
+        showPage(Page.LIBRARY)
     }
 
     private fun enterTabs() {
@@ -1334,23 +1466,9 @@ class HomeActivity : Activity(), Previews.Listener {
     /** OK held on the Library tab: use another TMDB key, or sign out of the TMDB account. */
     private fun openTmdbMenu() {
         val items = ArrayList<ContextMenu.Item>()
-        items += ContextMenu.Item(R.drawable.ic_library, getString(R.string.tmdb_change_key)) {
-            changingKey = true
-            main.removeCallbacks(pageSettle)
-            page = Page.NONE
-            showPage(Page.LIBRARY)
-        }
+        items += ContextMenu.Item(R.drawable.ic_library, getString(R.string.tmdb_change_key)) { changeKey() }
         if (account.signedIn) {
-            items += ContextMenu.Item(R.drawable.ic_check, getString(R.string.tmdb_sign_out)) {
-                account.clear()
-                tmdb.forget("account-")
-                pendingLists.clear()
-                pendingShows.clear()
-                refreshContent(force = true)
-                page = Page.NONE
-                showPage(Page.LIBRARY)
-                showNote(getString(R.string.tmdb_signed_out))
-            }
+            items += ContextMenu.Item(R.drawable.ic_check, getString(R.string.tmdb_sign_out)) { signOut() }
         }
         val line = when {
             account.signedIn -> getString(R.string.signin_done, account.username)
@@ -1362,8 +1480,29 @@ class HomeActivity : Activity(), Previews.Listener {
         menu.open(getString(R.string.tmdb_menu_title), line, items)
     }
 
+    /** The Library shows the Connect page again, for a new key. */
+    private fun changeKey() {
+        changingKey = true
+        main.removeCallbacks(pageSettle)
+        page = Page.NONE
+        showPage(Page.LIBRARY)
+    }
+
+    private fun signOut() {
+        account.clear()
+        tmdb.forget("account-")
+        pendingLists.clear()
+        pendingShows.clear()
+        refreshContent(force = true)
+        page = Page.NONE
+        showPage(Page.LIBRARY)
+        paintProfile()
+        showNote(getString(R.string.tmdb_signed_out))
+    }
+
     /** Signed in on the phone: load the user's own lists, and the Library turns into them. */
     private fun onSignedIn(@Suppress("UNUSED_PARAMETER") username: String) {
+        paintProfile()
         refreshContent(force = true)
         main.postDelayed({
             if (page == Page.LIBRARY) {
@@ -1508,10 +1647,9 @@ class HomeActivity : Activity(), Previews.Listener {
             val pruned = favorites.retainAll(apps.map { it.packageName }.toSet())
             if (pruned || saved == null) installed.saveFavorites(favorites)
         }
-        val settings = getString(R.string.tile_settings)
         val allApps = getString(R.string.tile_all_apps)
-        appsAdapter.update(InstalledApps.homeTiles(apps, favorites, settings, allApps))
-        gridAdapter.update(InstalledApps.tiles(apps, settings, allApps).filter { it.kind != AppTile.Kind.ALL_APPS })
+        appsAdapter.update(InstalledApps.homeTiles(apps, favorites, allApps))
+        gridAdapter.update(InstalledApps.tiles(apps, allApps).filter { it.kind != AppTile.Kind.ALL_APPS })
         findViewById<TextView>(R.id.page_apps_count).text = getString(R.string.page_apps_count, apps.size)
         if (nav.row == 1 && area == Area.HOME) appsRow.post { nav.refocus() }
         if (area == Area.PAGE) appsGrid.post { focusGrid(gridFocus, View.FOCUS_DOWN) }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A centered glass tab bar, tvOS style, with the time and profile quietly at the right. -->
+<!-- A centered glass tab bar, tvOS style, with the time, network, settings and profile at the right. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/chrome"
     android:layout_width="match_parent"
@@ -52,6 +52,10 @@
             android:text="@string/nav_apps" />
     </com.shivansh.mibox.ui.TabBar>
 
+    <!--
+      The corner: the time, then the network, Android settings and the profile. Right from the last
+      tab reaches it; the focused one turns white.
+    -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
@@ -63,6 +67,7 @@
         <TextClock
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
             android:fontFamily="@font/geist_medium"
             android:fontFeatureSettings="tnum"
             android:format12Hour="h:mm"
@@ -71,11 +76,61 @@
             android:textColor="@color/text_soft"
             android:textSize="12dp" />
 
-        <TextView
+        <LinearLayout
+            android:id="@+id/corner_network"
+            android:layout_width="wrap_content"
+            android:layout_height="24dp"
+            android:background="@drawable/corner_bg"
+            android:contentDescription="@string/corner_network"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="9dp"
+            android:paddingEnd="11dp">
+
+            <ImageView
+                android:id="@+id/corner_network_icon"
+                android:layout_width="11dp"
+                android:layout_height="11dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_wifi"
+                android:tint="@color/corner_fg" />
+
+            <TextView
+                android:id="@+id/corner_network_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:fontFamily="@font/geist_medium"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:textColor="@color/corner_fg"
+                android:textSize="10.5dp" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/corner_settings"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginStart="10dp"
-            android:background="@drawable/profile_circle"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/corner_bg"
+            android:contentDescription="@string/tile_settings">
+
+            <ImageView
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_gear"
+                android:tint="@color/corner_fg" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/corner_profile"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/profile_circle_focus"
+            android:contentDescription="@string/corner_profile"
             android:fontFamily="@font/geist_semibold"
             android:gravity="center"
             android:includeFontPadding="false"

@@ -3,6 +3,8 @@
 
     <!-- Show data and artwork come from TMDB. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- The network pill in the tab bar's corner: Wi-Fi, Ethernet or offline. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Runs on Android TV, but nothing here needs the leanback feature or a touchscreen. -->
     <uses-feature
