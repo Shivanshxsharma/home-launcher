@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Shivanshxsharma/home-launcher/releases/latest"><b>Download Home Launcher or Maximal</b></a> · Android TV 9 or newer
+  <a href="https://github.com/Shivanshxsharma/home-launcher/releases/latest"><b>Download Home Launcher, Maximal or Minimal</b></a> · Android TV 9 or newer
 </p>
 
 <p align="center">
@@ -85,7 +85,22 @@ Maximal is a separate app in the same repository, for when you want something ca
 - **Same data as Home Launcher.** It shares Home Launcher's TMDB code, so it has the same trending titles, genres, search, trailers and watchlist. Connect TMDB from **Profile** by scanning the code with your phone.
 - **Built for the same box.** Shading is baked into the art, panels use pre-blurred glass, and nothing redraws while you're idle. On the Mi Box 4K, moving through the rail renders at a median of 5.7 ms a frame.
 
-To try it, download `Maximal-0.2.0.apk` from the [latest release](https://github.com/Shivanshxsharma/home-launcher/releases/latest) and install it the same way as Home Launcher (see [Install it](#install-it)). It works next to Home Launcher or on its own. With both installed, Android asks which one to use the next time you press Home.
+To try it, download `Maximal-0.2.1.apk` from the [latest release](https://github.com/Shivanshxsharma/home-launcher/releases/latest) and install it the same way as Home Launcher (see [Install it](#install-it)). It works next to Home Launcher or on its own. With both installed, Android asks which one to use the next time you press Home.
+
+## Minimal, a third launcher
+
+Minimal is the quiet one: black, square, set in wide Archivo, with a single orange accent. It has two floors and nothing else.
+
+- **Home** is a big clock (orange colon, the date, a ruler that counts the seconds) over a row of your apps.
+- **One press down is Favs**: your TMDB favorite shows and films. The focused title's backdrop fills the screen, its name, ★ score, year and story sit on the left, and the posters run along the bottom.
+- **A Mi TV-style selector.** The focused tile grows, lightens and gets a short white bar on its bottom edge, and the row slides under it.
+- **Tiny.** No demo art inside: the APK is about 300 KB, and on the clock the only thing redrawn each second is the second hand.
+
+<img src="docs/screenshots/minimal-home.jpg" alt="Minimal's Home: a large 12:10 PM clock with an orange colon, a seconds ruler, and a row of app banners with Maximal selected" width="100%">
+
+<img src="docs/screenshots/minimal-favs.jpg" alt="Minimal's Favs: Link Click's backdrop full screen with SERIES / CRUNCHYROLL, the title, ★ 8.0 / 2021 / 5 SEASONS / ANIMATION, and a row of posters" width="100%">
+
+Favs come from your TMDB account, so Minimal asks you to sign in once by scanning a code (it keeps its own sign-in, separate from Home Launcher's). Download `Minimal-0.1.0.apk` from the [latest release](https://github.com/Shivanshxsharma/home-launcher/releases/latest) and install it like the others.
 
 ## On the remote
 
@@ -112,11 +127,11 @@ The Mi Box 4K has a Mali-450 GPU and 2 GB of RAM, so smoothness was designed in 
 
 ## Install it
 
-1. **Download** `HomeLauncher-0.6.0.apk` from the [latest release](https://github.com/Shivanshxsharma/home-launcher/releases/latest). For Maximal, use `Maximal-0.2.0.apk` instead, or install both.
+1. **Download** `HomeLauncher-0.6.1.apk` from the [latest release](https://github.com/Shivanshxsharma/home-launcher/releases/latest). For the other launchers, use `Maximal-0.2.1.apk` or `Minimal-0.1.0.apk` instead, or install more than one.
 2. **Install it on the TV.** Turn on network debugging on the TV (Settings → Device Preferences → About → press Build seven times, then Developer options → USB debugging), then from a computer on the same Wi-Fi:
    ```bash
    adb connect <tv-ip>:5555
-   adb install HomeLauncher-0.6.0.apk
+   adb install HomeLauncher-0.6.1.apk
    ```
    A file manager or a "send files to TV" app works too.
 3. **Connect TMDB.** Open Home Launcher and it starts on the **Connect TMDB** page. Scan the code with a phone on the same Wi-Fi, follow the link on your phone to get a free TMDB API key, and paste it in. The TV checks the key and connects. The key is kept only on the TV. In Maximal, open **Profile** at the bottom of the sidebar instead.
@@ -128,7 +143,7 @@ The Mi Box 4K has a Mali-450 GPU and 2 GB of RAM, so smoothness was designed in 
    To go back, run `adb shell pm enable com.google.android.tvlauncher`, or on the TV go to **Settings → Apps → See all apps → Show system apps → Android TV Home → Enable**.
 6. **Optional: the remote's Apps button.** Android TV only sends this button to its own launcher. To have it open this launcher's Apps tab instead, go to **Settings → Device Preferences → Accessibility** and turn on **Home Launcher: Apps button**. That service listens for that one button and reads nothing on screen.
 
-The APKs are signed with a development key. If you built and installed your own copy before, uninstall it first. Version 0.6.0 installs over earlier versions and keeps your key and sign-in.
+The APKs are signed with a development key. If you built and installed your own copy before, uninstall it first. Version 0.6.1 installs over earlier versions and keeps your key and sign-in.
 
 ### Build it yourself
 
@@ -138,7 +153,7 @@ You need JDK 17 or newer and the Android SDK (platform 37).
 ./gradlew assembleRelease -PpublicBuild
 ```
 
-That builds both launchers: Home Launcher at `app/build/outputs/apk/release/` and Maximal at `maximal/build/outputs/apk/release/`. Each APK has no key inside; you connect one from your phone as above. For your own builds you can bake a key in instead: put `tmdb.apiKey=YOUR_KEY` in `local.properties` (git ignores that file) and leave out `-PpublicBuild`. Don't share an APK built that way, because anyone can read the key out of it.
+That builds all three launchers: Home Launcher at `app/build/outputs/apk/release/`, Maximal at `maximal/build/outputs/apk/release/` and Minimal at `minimal/build/outputs/apk/release/`. Each APK has no key inside; you connect one from your phone as above. For your own builds you can bake a key in instead: put `tmdb.apiKey=YOUR_KEY` in `local.properties` (git ignores that file) and leave out `-PpublicBuild`. Don't share an APK built that way, because anyone can read the key out of it.
 
 ## Under the hood
 
@@ -154,9 +169,13 @@ app/src/main/java/com/shivansh/mibox/
 maximal/src/main/java/com/shivansh/mibox/maximal/
 ├── MaximalActivity.kt   sidebar, title and rail, and the keys between them
 └── ui/                  sidebar, poster rail, title block, profile, glass backdrops
+
+minimal/src/main/java/com/shivansh/mibox/minimal/
+├── MinimalActivity.kt   the two floors, the rows and the keys
+└── ui/                  clock, seconds ruler, rows and selector, backdrop, TMDB sign-in
 ```
 
-Maximal compiles Home Launcher's `data/` package at build time (see `maximal/build.gradle.kts`), so both launchers read TMDB the same way.
+Maximal and Minimal compile Home Launcher's `data/` package at build time (see their `build.gradle.kts`), so all three launchers read TMDB the same way.
 
 - **Kotlin**, `minSdk 28` (Android 9), no Compose and no image-loading library.
 - **TMDB v3** for titles, art, logos, trailers, India watch providers and your lists, with **ZXing** for the sign-in QR code.

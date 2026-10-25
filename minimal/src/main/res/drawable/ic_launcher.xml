@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A black square with the clock's orange colon. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path android:fillColor="#FF000000" android:pathData="M0,0h48v48h-48z" />
+    <path android:fillColor="#FFFF6900" android:pathData="M20,13h8v8h-8z M20,27h8v8h-8z" />
+</vector>

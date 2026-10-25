@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Minimal</string>
+
+    <string name="good_morning">Good morning</string>
+    <string name="good_afternoon">Good afternoon</string>
+    <string name="good_evening">Good evening</string>
+    <string name="good_night">Good night</string>
+
+    <string name="row_apps">My apps</string>
+    <string name="row_apps_focused">My apps  /  %1$s</string>
+    <string name="row_favs">My favs</string>
+    <string name="row_count">%1$02d / %2$02d</string>
+    <string name="down_hint_count">My favs  %1$d</string>
+    <string name="up_hint">Home</string>
+
+    <string name="kicker_series">Series</string>
+    <string name="kicker_film">Film</string>
+    <string name="open_in">Open %1$s</string>
+    <string name="not_streaming">Not on your apps</string>
+    <string name="provider_missing">%1$s isn\'t installed on this box</string>
+
+    <string name="favs_empty_title">No favs yet</string>
+    <string name="favs_empty_line">Favorite a show or film on TMDB, or hold OK on one in Home Launcher and choose Add to Favorites. It shows up here.</string>
+    <string name="favs_offline">Can\'t reach TMDB right now. Your favs show up as soon as it answers.</string>
+
+    <string name="connect_kicker">Set up</string>
+    <string name="connect_title">Connect TMDB</string>
+    <string name="connect_line">Your favs come from TMDB. This TV needs a free TMDB API key first. Scan the code with a phone on the same Wi-Fi, follow the link to get a key, and paste it in.</string>
+    <string name="connect_starting">Getting the code ready…</string>
+    <string name="connect_waiting">Waiting for your phone…</string>
+    <string name="connect_checking">Checking the key with TMDB…</string>
+    <string name="connect_done">Connected to TMDB</string>
+    <string name="connect_refused">TMDB didn\'t accept that key. Try again on your phone…</string>
+    <string name="connect_offline">Couldn\'t reach TMDB to check the key. Try again on your phone…</string>
+    <string name="connect_no_network">This TV isn\'t on a network yet. Trying again…</string>
+    <string name="connect_or_open">Or open %1$s</string>
+
+    <string name="signin_kicker">Favs</string>
+    <string name="signin_title">Sign in to TMDB</string>
+    <string name="signin_line">Scan the code, sign in to TMDB on your phone and tap Approve. Your favorite shows and films appear here.</string>
+    <string name="signin_getting">Getting a sign-in code…</string>
+    <string name="signin_waiting">Waiting for you to approve…</string>
+    <string name="signin_offline">Can\'t reach TMDB right now. Trying again…</string>
+    <string name="scan">Scan with your phone</string>
+
+    <string name="note_signed_in">Signed in as %1$s</string>
+    <string name="tmdb_notice">This product uses the TMDB API but is not endorsed or certified by TMDB.</string>
+</resources>

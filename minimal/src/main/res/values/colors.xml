@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="ink">#FFF2F0EA</color>
+    <color name="ink_soft">#FFB9B6AE</color>
+    <color name="dim">#FF7D7B76</color>
+    <color name="line">#FF2A2A2A</color>
+    <color name="panel">#FF0D0D0D</color>
+    <!-- The one colour: focus, the clock's colon, the seconds. -->
+    <color name="orange">#FFFF6900</color>
+</resources>

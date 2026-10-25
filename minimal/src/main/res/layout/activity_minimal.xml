@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Minimal, laid out at 960x540dp (1920x1080 px on the Mi Box). Black, square corners, hairline
+  rules and one colour, orange, for time and labels. Two floors, like the PS5: Home (the clock over
+  a row of app banners) and, one press down, Favs (the focused title's backdrop full screen,
+  its words at the left, a row of posters along the bottom). Each row keeps its focused tile at
+  the left margin, enlarged and lit, with a white bar on its foot, and slides beneath it.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:clipChildren="false">
+
+    <!-- ===== The backdrop: full screen, shown on Favs ===== -->
+
+    <FrameLayout
+        android:id="@+id/backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:visibility="invisible">
+
+        <ImageView
+            android:id="@+id/backdrop_lower"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop" />
+
+        <ImageView
+            android:id="@+id/backdrop_upper"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0"
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop"
+            android:visibility="invisible" />
+    </FrameLayout>
+
+    <!-- ===== Home: the clock and the apps ===== -->
+
+    <FrameLayout
+        android:id="@+id/home_floor"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false">
+
+        <TextView
+            android:id="@+id/greeting"
+            style="@style/Label"
+            android:layout_marginStart="48dp"
+            android:layout_marginTop="34dp"
+            android:textColor="@color/orange"
+            android:textSize="11dp" />
+
+        <TextView
+            android:id="@+id/date"
+            style="@style/Label"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="34dp"
+            android:layout_marginEnd="48dp"
+            android:textColor="@color/ink"
+            android:textSize="11dp" />
+
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="41dp"
+            android:layout_marginTop="40dp"
+            android:fontFamily="@font/archivo_expanded_extrabold"
+            android:fontFeatureSettings="tnum"
+            android:includeFontPadding="false"
+            android:letterSpacing="-0.02"
+            android:singleLine="true"
+            android:textColor="@color/ink"
+            android:textSize="200dp" />
+
+        <!-- AM / PM, flush right, level with the tops of the digits. -->
+        <TextView
+            android:id="@+id/ampm"
+            style="@style/Label"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="84dp"
+            android:layout_marginEnd="48dp"
+            android:textColor="@color/ink"
+            android:textSize="22dp" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:layout_marginStart="48dp"
+            android:layout_marginTop="234dp"
+            android:layout_marginEnd="48dp">
+
+            <com.shivansh.mibox.minimal.ui.Ruler
+                android:id="@+id/ruler"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <View
+                android:id="@+id/second"
+                android:layout_width="3dp"
+                android:layout_height="20dp"
+                android:background="@color/orange" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/apps_label"
+            style="@style/Label"
+            android:layout_marginStart="48dp"
+            android:layout_marginTop="272dp"
+            android:text="@string/row_apps"
+            android:textColor="@color/ink" />
+
+        <TextView
+            android:id="@+id/apps_count"
+            style="@style/Label"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="272dp"
+            android:layout_marginEnd="48dp"
+            android:fontFeatureSettings="tnum" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:layout_marginTop="302dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <LinearLayout
+                android:id="@+id/apps_track"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="48dp"
+                android:clipChildren="false"
+                android:orientation="horizontal" />
+
+            <View
+                android:id="@+id/apps_bar"
+                android:layout_width="28dp"
+                android:layout_height="3.5dp"
+                android:alpha="0"
+                android:background="@drawable/bar"
+                android:visibility="invisible" />
+        </FrameLayout>
+
+        <!-- What's one floor down. -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="30dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/Label"
+                android:background="@drawable/key_cap"
+                android:paddingStart="6dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="6dp"
+                android:paddingBottom="4dp"
+                android:text="▼"
+                android:textColor="@color/orange"
+                android:textSize="9dp" />
+
+            <TextView
+                android:id="@+id/down_hint"
+                style="@style/Label"
+                android:layout_marginStart="10dp"
+                android:textColor="@color/orange" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- ===== Favs: one floor down ===== -->
+
+    <FrameLayout
+        android:id="@+id/favs_floor"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:visibility="invisible">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="48dp"
+            android:layout_marginTop="30dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/Label"
+                android:background="@drawable/key_cap"
+                android:paddingStart="6dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="6dp"
+                android:paddingBottom="4dp"
+                android:text="▲"
+                android:textColor="@color/ink"
+                android:textSize="9dp" />
+
+            <TextView
+                style="@style/Label"
+                android:layout_marginStart="10dp"
+                android:text="@string/up_hint"
+                android:textColor="@color/ink" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/corner"
+            style="@style/Label"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="34dp"
+            android:layout_marginEnd="48dp"
+            android:fontFeatureSettings="tnum"
+            android:textColor="@color/ink"
+            android:textSize="11dp" />
+
+        <LinearLayout
+            android:id="@+id/info"
+            android:layout_width="440dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="206dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/kicker"
+                style="@style/Label"
+                android:background="@color/orange"
+                android:paddingStart="7dp"
+                android:paddingTop="5dp"
+                android:paddingEnd="7dp"
+                android:paddingBottom="5dp"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:fontFamily="@font/archivo_expanded_extrabold"
+                android:includeFontPadding="false"
+                android:lineSpacingMultiplier="0.92"
+                android:textAllCaps="true"
+                android:textColor="@color/ink" />
+
+            <TextView
+                android:id="@+id/meta"
+                style="@style/Label"
+                android:layout_marginTop="16dp"
+                android:fontFeatureSettings="tnum"
+                android:lineSpacingExtra="4dp"
+                android:maxLines="2"
+                android:singleLine="false"
+                android:textAllCaps="false"
+                android:textColor="@color/ink"
+                android:textSize="10.5dp" />
+
+            <TextView
+                android:id="@+id/overview"
+                android:layout_width="380dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/archivo_regular"
+                android:includeFontPadding="false"
+                android:lineSpacingExtra="5dp"
+                android:maxLines="3"
+                android:shadowColor="#99000000"
+                android:shadowRadius="6"
+                android:textColor="@color/ink"
+                android:textSize="12dp" />
+
+            <LinearLayout
+                android:id="@+id/hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/Label"
+                    android:background="@drawable/key_cap"
+                    android:paddingStart="6dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="6dp"
+                    android:paddingBottom="4dp"
+                    android:text="OK"
+                    android:textColor="@color/ink"
+                    android:textSize="9dp" />
+
+                <TextView
+                    android:id="@+id/hint_text"
+                    style="@style/Label"
+                    android:layout_marginStart="10dp"
+                    android:textColor="@color/ink" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- TMDB set-up: the QR code on white, at the right. -->
+        <LinearLayout
+            android:id="@+id/qr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="96dp"
+            android:layout_marginBottom="40dp"
+            android:orientation="vertical"
+            android:visibility="invisible">
+
+            <FrameLayout
+                android:layout_width="176dp"
+                android:layout_height="176dp"
+                android:background="@color/ink"
+                android:padding="22dp">
+
+                <ImageView
+                    android:id="@+id/qr_code"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:importantForAccessibility="no" />
+            </FrameLayout>
+
+            <!-- "Scan with your phone", or the connect page's address for typing in; up to two lines. -->
+            <TextView
+                android:id="@+id/qr_label"
+                style="@style/Label"
+                android:layout_width="176dp"
+                android:background="@color/orange"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:letterSpacing="0.1"
+                android:lineSpacingExtra="3dp"
+                android:maxLines="2"
+                android:paddingStart="8dp"
+                android:paddingTop="7dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="7dp"
+                android:singleLine="false"
+                android:textColor="@color/black"
+                android:textSize="9dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/favs_label"
+            style="@style/Label"
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="174dp"
+            android:text="@string/row_favs"
+            android:textColor="@color/ink" />
+
+        <TextView
+            android:id="@+id/favs_count"
+            style="@style/Label"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="48dp"
+            android:layout_marginBottom="174dp"
+            android:fontFeatureSettings="tnum"
+            android:textColor="@color/ink" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="10dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <LinearLayout
+                android:id="@+id/favs_track"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="48dp"
+                android:clipChildren="false"
+                android:orientation="horizontal" />
+
+            <View
+                android:id="@+id/favs_bar"
+                android:layout_width="28dp"
+                android:layout_height="3.5dp"
+                android:alpha="0"
+                android:background="@drawable/bar"
+                android:visibility="invisible" />
+        </FrameLayout>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/note"
+        style="@style/Label"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="64dp"
+        android:layout_marginEnd="48dp"
+        android:background="@color/orange"
+        android:paddingStart="10dp"
+        android:paddingTop="7dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="7dp"
+        android:textColor="@color/black"
+        android:visibility="invisible" />
+</FrameLayout>

@@ -1,10 +1,12 @@
 [versions]
 agp = "9.4.1"
+annotation = "1.8.1"
 dynamicanimation = "1.1.0"
 recyclerview = "1.4.0"
 zxing = "3.5.4"
 
 [libraries]
+androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
 androidx-dynamicanimation = { group = "androidx.dynamicanimation", name = "dynamicanimation", version.ref = "dynamicanimation" }
 androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }

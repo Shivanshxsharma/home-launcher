@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Minimal" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@color/black</item>
+        <item name="android:colorBackground">@color/black</item>
+        <item name="android:colorAccent">@color/orange</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowShowWallpaper">false</item>
+        <!-- Focus is drawn by the launcher; no system highlight on top. -->
+        <item name="android:defaultFocusHighlightEnabled">false</item>
+    </style>
+
+    <!-- Wide, letter-spaced caps: tabs, labels, the date. Sizes in dp so the TV's font scale can't break the grid. -->
+    <style name="Label">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/archivo_expanded_semibold</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:letterSpacing">0.16</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/dim</item>
+        <item name="android:textSize">10dp</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="Tab" parent="Label">
+        <item name="android:layout_height">30dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:textSize">11dp</item>
+    </style>
+</resources>
