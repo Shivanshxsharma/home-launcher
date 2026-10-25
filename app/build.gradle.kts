@@ -19,8 +19,8 @@ android {
         applicationId = "com.shivansh.mibox"
         minSdk = 28
         targetSdk = 37
-        versionCode = 7
-        versionName = "0.6.0"
+        versionCode = 8
+        versionName = "0.6.1"
         // A public build (./gradlew assembleRelease -PpublicBuild) carries no key: users connect
         // their own from their phone on the Library tab. Developer builds may bake one in.
         val bakedKey = if (providers.gradleProperty("publicBuild").isPresent) "" else localProps.getProperty("tmdb.apiKey", "")

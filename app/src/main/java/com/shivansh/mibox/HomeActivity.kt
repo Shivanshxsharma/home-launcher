@@ -48,6 +48,7 @@ import com.shivansh.mibox.data.tmdb.Tmdb
 import com.shivansh.mibox.data.InstalledApps
 import com.shivansh.mibox.data.Provider
 import com.shivansh.mibox.data.Show
+import com.shivansh.mibox.data.YouTube
 import com.shivansh.mibox.ui.AppArtSource
 import com.shivansh.mibox.ui.Backdrop
 import com.shivansh.mibox.ui.Cards
@@ -1103,9 +1104,13 @@ class HomeActivity : Activity(), Previews.Listener {
         searchPage.setText(heard.lowercase())
     }
 
-    /** The trailer plays full-screen right here; Back returns to whatever it was started from. */
+    /**
+     * The trailer opens in the YouTube app, whose own player is smoother than an embedded one; Back
+     * returns here. Only with no app for YouTube links does it play in the launcher's own player.
+     */
     private fun playTrailer(show: Show) {
-        if (show.trailers.isEmpty()) return
+        val key = show.trailers.firstOrNull() ?: return
+        if (YouTube.play(this, key)) return
         startActivity(TrailerActivity.intent(this, show.title, show.trailers))
         @Suppress("DEPRECATION")
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)

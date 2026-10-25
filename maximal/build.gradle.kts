@@ -46,8 +46,8 @@ android {
         applicationId = "com.shivansh.mibox.maximal"
         minSdk = 28
         targetSdk = 37
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.2.1"
         // Same rule as the Home launcher: a public build (-PpublicBuild) carries no key, and users
         // connect their own from their phone; developer builds may bake one in.
         val bakedKey = if (providers.gradleProperty("publicBuild").isPresent) "" else localProps.getProperty("tmdb.apiKey", "")

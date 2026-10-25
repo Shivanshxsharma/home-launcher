@@ -29,6 +29,7 @@ import com.shivansh.mibox.data.HomeContent
 import com.shivansh.mibox.data.InstalledApps
 import com.shivansh.mibox.data.Provider
 import com.shivansh.mibox.data.Show
+import com.shivansh.mibox.data.YouTube
 import com.shivansh.mibox.data.tmdb.Account
 import com.shivansh.mibox.data.tmdb.ApiKey
 import com.shivansh.mibox.data.tmdb.Catalog
@@ -516,9 +517,12 @@ class MaximalActivity : Activity(), Previews.Listener, Profile.Listener {
         val list = ArrayList<Pills.Pill>()
         if (show.trailers.isNotEmpty()) {
             list += Pills.Pill(R.drawable.ic_film, getString(R.string.trailer)) {
-                startActivity(TrailerActivity.intent(this, show.title, show.trailers))
-                @Suppress("DEPRECATION")
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+                // In the YouTube app when there is one; its player is smoother than the embedded one.
+                if (!YouTube.play(this, show.trailers.first())) {
+                    startActivity(TrailerActivity.intent(this, show.title, show.trailers))
+                    @Suppress("DEPRECATION")
+                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+                }
             }
         }
         if (show.tmdbId > 0) {
