@@ -112,11 +112,11 @@ The Mi Box 4K has a Mali-450 GPU and 2 GB of RAM, so smoothness was designed in 
 
 ## Install it
 
-1. **Download** `HomeLauncher-0.5.0.apk` from the [latest release](https://github.com/Shivanshxsharma/home-launcher/releases/latest). For Maximal, use `Maximal-0.2.0.apk` instead, or install both.
+1. **Download** `HomeLauncher-0.6.0.apk` from the [latest release](https://github.com/Shivanshxsharma/home-launcher/releases/latest). For Maximal, use `Maximal-0.2.0.apk` instead, or install both.
 2. **Install it on the TV.** Turn on network debugging on the TV (Settings → Device Preferences → About → press Build seven times, then Developer options → USB debugging), then from a computer on the same Wi-Fi:
    ```bash
    adb connect <tv-ip>:5555
-   adb install HomeLauncher-0.5.0.apk
+   adb install HomeLauncher-0.6.0.apk
    ```
    A file manager or a "send files to TV" app works too.
 3. **Connect TMDB.** Open Home Launcher and it starts on the **Connect TMDB** page. Scan the code with a phone on the same Wi-Fi, follow the link on your phone to get a free TMDB API key, and paste it in. The TV checks the key and connects. The key is kept only on the TV. In Maximal, open **Profile** at the bottom of the sidebar instead.
@@ -128,7 +128,7 @@ The Mi Box 4K has a Mali-450 GPU and 2 GB of RAM, so smoothness was designed in 
    To go back, run `adb shell pm enable com.google.android.tvlauncher`, or on the TV go to **Settings → Apps → See all apps → Show system apps → Android TV Home → Enable**.
 6. **Optional: the remote's Apps button.** Android TV only sends this button to its own launcher. To have it open this launcher's Apps tab instead, go to **Settings → Device Preferences → Accessibility** and turn on **Home Launcher: Apps button**. That service listens for that one button and reads nothing on screen.
 
-The APKs are signed with a development key. If you built and installed your own copy before, uninstall it first. Version 0.5.0 installs over 0.4.0 and keeps your key and sign-in.
+The APKs are signed with a development key. If you built and installed your own copy before, uninstall it first. Version 0.6.0 installs over earlier versions and keeps your key and sign-in.
 
 ### Build it yourself
 
