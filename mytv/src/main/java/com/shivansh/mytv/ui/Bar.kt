@@ -23,6 +23,12 @@ class Pill(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
     override fun hasOverlappingRendering() = false
 
+    /** Takes no width of its own, so the bar wraps its tabs, not the screen. */
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val exact = MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY
+        setMeasuredDimension(if (exact) MeasureSpec.getSize(widthMeasureSpec) else 0, MeasureSpec.getSize(heightMeasureSpec))
+    }
+
     fun color(value: Int) {
         paint.color = value
         invalidate()
