@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="surface">#FF101217</color>
+    <color name="card">#FF1E2128</color>
+    <color name="ink">#FFFFFFFF</color>
+    <color name="soft">#FFB7BCC6</color>
+
+    <style name="Theme.MyTv" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="android:colorBackground">@color/surface</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowShowWallpaper">false</item>
+        <!-- Focus is drawn by the launcher; no system highlight on top. -->
+        <item name="android:defaultFocusHighlightEnabled">false</item>
+    </style>
+
+    <!-- Sizes in dp, so the TV's font scale can't break the layout. -->
+    <style name="Tab">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">32dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:fontFamily">@font/geist_medium</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:textSize">13dp</item>
+    </style>
+
+    <style name="Heading">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/geist_semibold</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:textSize">15dp</item>
+    </style>
+
+    <style name="Note">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/geist_regular</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/soft</item>
+        <item name="android:textSize">12dp</item>
+    </style>
+
+    <!-- The clock's digits. -->
+    <style name="Digits">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/ink</item>
+    </style>
+</resources>

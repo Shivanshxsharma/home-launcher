@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MY TV</string>
+
+    <string name="tab_home">Home</string>
+    <string name="tab_favorites">Favorites</string>
+    <string name="tab_search">Search</string>
+    <string name="tab_style">Style</string>
+
+    <string name="home_empty">Add apps on the Favorites tab and they appear here.</string>
+    <string name="favs_title">Favorites</string>
+    <string name="favs_hint">Hold OK on an app to add it to Home, remove it, or move it</string>
+    <string name="search_placeholder">Type an app name</string>
+    <string name="search_none">No apps match</string>
+    <string name="style_wallpaper">Wallpaper</string>
+    <string name="style_clock">Clock</string>
+    <string name="style_rotate">Change by itself</string>
+    <string name="move_hint">Left and right to move it, OK when it\'s in place</string>
+
+    <string name="face_stacked">Stacked</string>
+    <string name="face_wide">Wide</string>
+    <string name="face_dial">Dial</string>
+    <string name="face_serif">Serif</string>
+
+    <string name="menu_open">Open</string>
+    <string name="menu_add">Add to Favorites</string>
+    <string name="menu_remove">Remove from Favorites</string>
+    <string name="menu_move">Move</string>
+
+    <string name="key_space">Space</string>
+    <string name="key_delete">Delete</string>
+    <string name="key_clear">Clear</string>
+</resources>

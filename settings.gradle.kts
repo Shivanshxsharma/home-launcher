@@ -26,3 +26,5 @@ include(":app")
 include(":maximal")
 // A third: black and bare, only a clock, your apps and your favorites (see minimal/build.gradle.kts).
 include(":minimal")
+// A fourth: the lightest, a wallpaper, a clock and your favorites, no network (see mytv/build.gradle.kts).
+include(":mytv")
