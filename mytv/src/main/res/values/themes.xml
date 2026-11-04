@@ -4,6 +4,8 @@
     <color name="card">#FF1E2128</color>
     <color name="ink">#FFFFFFFF</color>
     <color name="soft">#FFB7BCC6</color>
+    <color name="night">#FF101217</color>
+    <color name="text_soft">#FFE8EAEE</color>
 
     <style name="Theme.MyTv" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
         <item name="android:windowBackground">@color/surface</item>

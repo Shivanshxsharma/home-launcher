@@ -7,27 +7,66 @@
     <string name="tab_search">Search</string>
     <string name="tab_style">Style</string>
 
-    <string name="home_empty">Add apps on the Favorites tab and they appear here.</string>
+    <string name="row_apps">Apps</string>
+    <string name="kicker_film">Film</string>
+    <string name="kicker_series">Series</string>
     <string name="favs_title">Favorites</string>
-    <string name="favs_hint">Hold OK on an app to add it to Home, remove it, or move it</string>
-    <string name="search_placeholder">Type an app name</string>
-    <string name="search_none">No apps match</string>
+    <string name="favs_hint">OK opens a title. Hold OK for its trailer, or to remove it.</string>
+    <string name="favs_empty_title">No favorites yet</string>
+    <string name="favs_empty_line">Find a film or show in Search, hold OK, and choose Add to Favorites.</string>
+    <string name="search_placeholder">Search films and shows</string>
+    <string name="search_none">Nothing matches. Try fewer letters.</string>
+    <string name="search_offline">Can\'t reach TMDB right now.</string>
     <string name="style_wallpaper">Wallpaper</string>
     <string name="style_clock">Clock</string>
     <string name="style_rotate">Change by itself</string>
-    <string name="move_hint">Left and right to move it, OK when it\'s in place</string>
 
-    <string name="face_stacked">Stacked</string>
-    <string name="face_wide">Wide</string>
+    <string name="face_contour">Contour</string>
+    <string name="face_long">Long</string>
+    <string name="face_shapes">Shapes</string>
     <string name="face_dial">Dial</string>
     <string name="face_serif">Serif</string>
 
     <string name="menu_open">Open</string>
+    <string name="menu_trailer">Play trailer</string>
     <string name="menu_add">Add to Favorites</string>
     <string name="menu_remove">Remove from Favorites</string>
     <string name="menu_move">Move</string>
 
+    <string name="not_streaming">Not on your apps</string>
+    <string name="no_trailer">No trailer for this one</string>
+    <string name="sign_in_first">Sign in to TMDB to save favorites</string>
+    <string name="note_added">Added to Favorites</string>
+    <string name="note_removed">Removed from Favorites</string>
+    <string name="note_failed">Couldn\'t reach TMDB. Try again in a moment.</string>
+    <string name="note_signed_in">Signed in as %1$s</string>
+
+    <string name="network_wifi">Wi-Fi</string>
+    <string name="network_ethernet">Ethernet</string>
+    <string name="network_offline">Offline</string>
+    <string name="corner_network">Network</string>
+    <string name="corner_settings">Settings</string>
+
     <string name="key_space">Space</string>
     <string name="key_delete">Delete</string>
     <string name="key_clear">Clear</string>
+
+    <string name="connect_kicker">Set up</string>
+    <string name="connect_title">Connect TMDB</string>
+    <string name="connect_line">Your favorites come from TMDB. This TV needs a free TMDB API key first. Scan the code with a phone on the same Wi-Fi and paste your key there.</string>
+    <string name="connect_starting">Getting the code ready…</string>
+    <string name="connect_waiting">Waiting for your phone…</string>
+    <string name="connect_checking">Checking the key with TMDB…</string>
+    <string name="connect_done">Connected to TMDB</string>
+    <string name="connect_refused">TMDB didn\'t accept that key. Try again on your phone…</string>
+    <string name="connect_offline">Couldn\'t reach TMDB to check the key. Try again on your phone…</string>
+    <string name="connect_no_network">This TV isn\'t on a network yet. Trying again…</string>
+    <string name="connect_or_open">Or open %1$s</string>
+    <string name="signin_kicker">Favorites</string>
+    <string name="signin_title">Sign in to TMDB</string>
+    <string name="signin_line">Scan the code, sign in to TMDB on your phone and tap Approve. Your favorite films and shows appear here.</string>
+    <string name="signin_getting">Getting a sign-in code…</string>
+    <string name="signin_waiting">Waiting for you to approve…</string>
+    <string name="signin_offline">Can\'t reach TMDB right now. Trying again…</string>
+    <string name="scan">Scan with your phone</string>
 </resources>

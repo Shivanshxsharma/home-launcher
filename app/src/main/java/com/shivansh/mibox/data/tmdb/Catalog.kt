@@ -224,6 +224,18 @@ class Catalog(private val tmdb: Tmdb, private val account: Account) {
         }
     }
 
+    /** Only the signed-in user's favorite shows and films, with their records: MY TV's light path. */
+    @WorkerThread
+    fun favorites(offline: Boolean): List<Show> {
+        if (!account.signedIn) return emptyList()
+        val shows = accountList("favorite", "tv", "created_at.desc", offline)
+        val films = accountList("favorite", "movies", "created_at.desc", offline)
+        val showDetails = details(shows.map { it.optInt("id") }, MediaType.TV, offline)
+        val filmDetails = details(films.map { it.optInt("id") }, MediaType.MOVIE, offline)
+        return shows.mapNotNull { show(it, showDetails[it.optInt("id")], MediaType.TV) } +
+            films.mapNotNull { show(it, filmDetails[it.optInt("id")], MediaType.MOVIE) }
+    }
+
     /** A title with its full record: service, logo and length. Fetches it if it isn't cached. */
     @WorkerThread
     fun enrich(show: Show): Show {

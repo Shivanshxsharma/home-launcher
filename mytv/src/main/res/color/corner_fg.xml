@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icons and words in the top-right corner: dark on the white pill when focused, soft white otherwise. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/night" android:state_selected="true" />
+    <item android:color="@color/text_soft" />
+</selector>

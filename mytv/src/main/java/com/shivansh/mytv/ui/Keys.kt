@@ -94,7 +94,7 @@ class Keys(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         from.set(highlight)
         bounds(current, to)
         glide = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 150
+            duration = Motion.ms(170)
             interpolator = Motion.SETTLE
             addUpdateListener {
                 val t = it.animatedValue as Float

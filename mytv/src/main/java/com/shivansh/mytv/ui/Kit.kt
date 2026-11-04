@@ -1,6 +1,7 @@
 package com.shivansh.mytv.ui
 
 import android.animation.TimeInterpolator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Outline
 import android.os.Process
@@ -31,29 +32,44 @@ object Palette {
     const val CARD = 0xFF1E2128.toInt()
     const val INK = 0xFFFFFFFF.toInt()
     const val SOFT = 0xFFB7BCC6.toInt()
+    const val DIM = SOFT
     const val DARK = 0xFF101217.toInt()
+    const val ORANGE = 0xFFFFB27A.toInt()
+    const val STAR = 0xFFFFD27A.toInt()
 }
 
 /** A soft spring: rises quickly, passes the mark by a few percent, and settles. */
 class Spring : TimeInterpolator {
-    override fun getInterpolation(t: Float): Float = if (t >= 1f) 1f else 1f - exp(-7f * t) * cos(9f * t)
+    override fun getInterpolation(t: Float): Float = if (t >= 1f) 1f else 1f - exp(-5.5f * t) * cos(8f * t)
 }
 
 object Motion {
     val LIFT = Spring()
 
     /** Rows sliding, pages changing. */
-    val SETTLE = PathInterpolator(0.2f, 0.8f, 0.2f, 1f)
+    val SETTLE = PathInterpolator(0.22f, 0.9f, 0.2f, 1f)
     val EASE = PathInterpolator(0.25f, 0.1f, 0.25f, 1f)
+
+    /**
+     * [wanted] ms in real time. Android scales every animator by the box's "animator duration"
+     * setting; at 0.5 a spring plays at double speed and looks cut off, so this undoes it.
+     */
+    fun ms(wanted: Long): Long {
+        val scale = ValueAnimator.getDurationScale()
+        return if (scale > 0f) (wanted / scale).toLong() else wanted
+    }
 }
 
-/** One low-priority thread for decoding and app art, so the UI thread only binds finished results. */
+/** Low-priority threads: one for decoding and app art, one for the network. */
 object Worker {
-    val pool: ExecutorService = Executors.newSingleThreadExecutor { r ->
+    val pool: ExecutorService = single("work")
+    val net: ExecutorService = single("net")
+
+    private fun single(name: String) = Executors.newSingleThreadExecutor { r ->
         Thread({
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)
             r.run()
-        }, "work")
+        }, name)
     }
 }
 
@@ -65,6 +81,6 @@ class RoundOutline(private val radius: Float) : ViewOutlineProvider() {
 /** Fades to [target]; a view that ends fully transparent is hidden so it costs nothing to draw. */
 fun View.fadeTo(target: Float, duration: Long) {
     if (target > 0f) visibility = View.VISIBLE
-    animate().alpha(target).setDuration(duration).setStartDelay(0).setInterpolator(Motion.EASE)
+    animate().alpha(target).setDuration(Motion.ms(duration)).setStartDelay(0).setInterpolator(Motion.EASE)
         .withEndAction { if (target == 0f) visibility = View.INVISIBLE }
 }
