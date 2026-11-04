@@ -33,8 +33,8 @@ object Decode {
     }
 
     /** No larger than needed to cover [width] x [height]; the low-RAM policy gives RGB_565 for JPEGs. */
-    fun asset(assets: AssetManager, path: String, width: Int, height: Int): Bitmap =
-        ImageDecoder.decodeBitmap(ImageDecoder.createSource(assets, path)) { decoder, info, _ -> target(decoder, info, width, height, false) }
+    fun asset(assets: AssetManager, path: String, width: Int, height: Int, mutable: Boolean = false): Bitmap =
+        ImageDecoder.decodeBitmap(ImageDecoder.createSource(assets, path)) { decoder, info, _ -> target(decoder, info, width, height, mutable) }
 
     /** TMDB art by URL, downloaded once into [ImageFiles]. */
     fun url(url: String, width: Int, height: Int, mutable: Boolean = false): Bitmap =
@@ -74,7 +74,7 @@ class Scenery(private val lower: ImageView, private val upper: ImageView, privat
         val pool = if (key.startsWith("https://")) Worker.net else Worker.pool
         pool.execute {
             val bitmap = runCatching {
-                if (key.startsWith("https://")) Decode.url(key, 1280, 720, mutable = true).also(::shade) else Decode.asset(assets, key, 1280, 720)
+                if (key.startsWith("https://")) Decode.url(key, 1280, 720, mutable = true).also(::shade) else Decode.asset(assets, key, 1280, 720, mutable = true).also(::floor)
             }.getOrNull()
             bitmap?.prepareToDraw()
             main.post { if (gen == generation && bitmap != null) present(key, bitmap) }
@@ -100,6 +100,18 @@ class Scenery(private val lower: ImageView, private val upper: ImageView, privat
         private const val REST_MS = 320L
 
         fun path(index: Int) = "wallpapers/${NAMES[index]}.jpg"
+
+        /**
+         * A wallpaper's shading, drawn in as it decodes: a live full-screen gradient would be blended
+         * on every frame, which costs the Mali-450 several milliseconds.
+         */
+        private fun floor(bitmap: Bitmap) {
+            val w = bitmap.width.toFloat()
+            val h = bitmap.height.toFloat()
+            val paint = Paint()
+            paint.shader = LinearGradient(0f, h * 0.45f, 0f, h, 0x00000000, 0xA6000000.toInt(), Shader.TileMode.CLAMP)
+            Canvas(bitmap).drawRect(0f, h * 0.45f, w, h, paint)
+        }
 
         /** Darker at the left for the words and along the bottom for the posters. */
         private fun shade(bitmap: Bitmap) {
