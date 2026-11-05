@@ -106,6 +106,7 @@ class MyTvActivity : Activity(), Link.Listener {
     private lateinit var dock: View
     private lateinit var allSheet: View
     private lateinit var appsHint: View
+    private lateinit var cornerTime: View
     private lateinit var depthGroup: View
     private lateinit var phoneCard: View
     private lateinit var phoneCode: ImageView
@@ -185,6 +186,7 @@ class MyTvActivity : Activity(), Link.Listener {
         dock = findViewById(R.id.dock)
         allSheet = findViewById(R.id.all_sheet)
         appsHint = findViewById(R.id.rack_apps_hint)
+        cornerTime = findViewById(R.id.corner_time)
         depthGroup = findViewById(R.id.depth_group)
         phoneCard = findViewById(R.id.phone_card)
         phoneCode = findViewById(R.id.phone_code)
@@ -553,6 +555,8 @@ class MyTvActivity : Activity(), Link.Listener {
         val wantHero = page == Page.FAVORITES
         val wantApps = home
         val wantClock = (home && !allOpen) || page == Page.STYLE
+        // A small face already shows the time up here, so the corner's own would be a repeat.
+        cornerTime.visibility = if (wantClock && prefs.getInt(FACE, 0) >= ClockFace.MINI) View.INVISIBLE else View.VISIBLE
         heroShowing = wantHero
         val travel = Ui.px(FLOOR_PX)
         floor(favRackView, wantHero, travel, animate)
@@ -993,6 +997,7 @@ class MyTvActivity : Activity(), Link.Listener {
     private fun faceNames() = listOf(
         R.string.face_glass, R.string.face_flip, R.string.face_moon, R.string.face_weekday, R.string.face_halo, R.string.face_serif,
         R.string.face_stack, R.string.face_month, R.string.face_ring, R.string.face_date, R.string.face_last, R.string.face_ambient,
+        R.string.face_mini, R.string.face_pill, R.string.face_dial,
     ).map(::getString)
 
     /** Where the chosen wallpaper is in the list; the first if it's been deleted. */

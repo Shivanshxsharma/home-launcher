@@ -237,6 +237,12 @@ class Scenery(private val lower: ImageView, private val upper: ImageView, privat
  * - Date: the date as a card.
  * - Last app: the time and the app opened last.
  * - Ambient: tonight's moon, its phase and how much of it is lit.
+ *
+ * And three small ones in the top-left corner, level with the bar, that leave the picture alone.
+ *
+ * - Mini: the time and date in thin type, as on Apple TV's screensavers.
+ * - Pill: a glass capsule the height of the bar.
+ * - Dial: a small watch face with the day beside it.
  */
 class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val tall = context.resources.getFont(R.font.sofia_tall)
@@ -352,6 +358,9 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             DATE_CARD -> dateCard(canvas)
             LAST_APP -> lastApp(canvas)
             AMBIENT -> ambient(canvas)
+            MINI -> mini(canvas)
+            PILL -> capsule(canvas)
+            DIAL -> smallDial(canvas)
             else -> {
                 // The large faces sit lower than the top of this view, under the bar.
                 canvas.save()
@@ -868,6 +877,90 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         else -> "Waning crescent"
     }
 
+    // ---- The small ones: up in the corner, level with the bar, and out of the picture's way ----
+
+    private fun mini(canvas: Canvas) {
+        digits(light, 88f, -0.02f)
+        val words = "$hour:$minute"
+        canvas.drawText(words, 0f, px(92f), text)
+        if (meridiem.isNotEmpty()) caption(meridiem, text.measureText(words) + px(10f), px(92f), canvas, center = false, size = 24f)
+        caption(time.format(SHORT_DATE), px(3f), px(134f), canvas, center = false, size = 26f)
+    }
+
+    /** A capsule the height of the bar, so the two read as one row. */
+    private fun capsule(canvas: Canvas) {
+        val h = px(68f)
+        val y = px(6f)
+        val words = "$hour:$minute"
+        val day = time.format(SHORT_DATE)
+        small.reset()
+        small.typeface = semibold
+        small.textSize = px(36f)
+        small.fontFeatureSettings = "tnum"
+        val timeW = small.measureText(words)
+        small.typeface = medium
+        small.textSize = px(18f)
+        val tagW = if (meridiem.isEmpty()) 0f else small.measureText(meridiem) + px(7f)
+        small.textSize = px(26f)
+        small.fontFeatureSettings = null
+        val dayW = small.measureText(day)
+        val pad = px(32f)
+        val gap = px(20f)
+        panel(canvas, 0f, y, pad * 2 + timeW + tagW + gap * 2 + dayW, h, h / 2f)
+        val baseline = y + h / 2f + px(13f)
+        var x = pad
+        write(canvas, words, x, baseline, 36f, semibold, align = Paint.Align.LEFT)
+        x += timeW
+        if (meridiem.isNotEmpty()) write(canvas, meridiem, x + px(7f), baseline, 18f, align = Paint.Align.LEFT)
+        x += tagW + gap
+        line.reset()
+        line.isAntiAlias = true
+        line.strokeWidth = px(2f)
+        line.color = 0x38FFFFFF
+        canvas.drawLine(x, y + px(20f), x, y + h - px(20f), line)
+        write(canvas, day, x + gap, y + h / 2f + px(10f), 26f, color = 0xE6FFFFFF.toInt(), align = Paint.Align.LEFT)
+    }
+
+    private fun smallDial(canvas: Canvas) {
+        val d = px(156f)
+        val y = px(2f)
+        val r = d / 2f
+        panel(canvas, 0f, y, d, d, r)
+        val cy = y + r
+        line.reset()
+        line.isAntiAlias = true
+        line.strokeCap = Paint.Cap.ROUND
+        for (i in 0 until 12) {
+            val a = Math.toRadians(i * 30.0)
+            val major = i % 3 == 0
+            val outer = r - px(10f)
+            val inner = outer - px(if (major) 12f else 6f)
+            line.strokeWidth = px(if (major) 3.5f else 2.5f)
+            line.color = if (major) Palette.INK else 0x8CFFFFFF.toInt()
+            val s = sin(a).toFloat()
+            val c = cos(a).toFloat()
+            canvas.drawLine(r + inner * s, cy - inner * c, r + outer * s, cy - outer * c, line)
+        }
+        val minutes = time.minute.toDouble()
+        pointer(canvas, r, cy, (time.hour % 12 + minutes / 60.0) * 30.0, r * 0.46f, px(6f))
+        pointer(canvas, r, cy, minutes * 6.0, r * 0.7f, px(4f))
+        fill.reset()
+        fill.isAntiAlias = true
+        fill.color = ORANGE
+        canvas.drawCircle(r, cy, px(7f), fill)
+        fill.color = 0xFF10121A.toInt()
+        canvas.drawCircle(r, cy, px(2.5f), fill)
+        caption(weekday, d + px(24f), cy - px(4f), canvas, center = false, size = 34f)
+        caption(date, d + px(24f), cy + px(36f), canvas, center = false, size = 26f, color = 0xE6FFFFFF.toInt())
+    }
+
+    private fun pointer(canvas: Canvas, cx: Float, cy: Float, degrees: Double, length: Float, width: Float) {
+        val a = Math.toRadians(degrees)
+        line.color = Palette.INK
+        line.strokeWidth = width
+        canvas.drawLine(cx, cy, cx + length * sin(a).toFloat(), cy - length * cos(a).toFloat(), line)
+    }
+
     companion object {
         const val GLASS = 0
         const val FLIP = 1
@@ -881,7 +974,11 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         const val DATE_CARD = 9
         const val LAST_APP = 10
         const val AMBIENT = 11
-        const val COUNT = 12
+        const val MINI = 12
+        const val PILL = 13
+        const val DIAL = 14
+        const val COUNT = 15
+        private const val ORANGE = 0xFFFF9F0A.toInt()
 
         /** Where the large faces start in this view, and the room they were designed for. */
         private const val LARGE_TOP = 108f
