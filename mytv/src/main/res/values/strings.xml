@@ -4,7 +4,6 @@
 
     <string name="tab_home">Home</string>
     <string name="tab_favorites">Favorites</string>
-    <string name="tab_recent">Recent</string>
     <string name="tab_search">Search</string>
     <string name="tab_style">Style</string>
 
@@ -32,12 +31,12 @@
     <string name="phone_offline">The TV isn\'t on a network</string>
     <string name="all_apps">All apps</string>
     <string name="all_hint">All apps  ↓</string>
-    <string name="recent_empty">Apps you open from MY TV will show up here</string>
+    <string name="recent_empty">No recent apps</string>
+    <string name="recent_hint">OK opens  ·  Up closes the app  ·  Down for Clear all</string>
     <string name="recent_clear">Clear all</string>
     <string name="note_recent_cleared">Recent apps cleared and closed</string>
-    <string name="menu_recent_remove">Remove from Recent</string>
     <string name="apps_key_label">MY TV: Apps button</string>
-    <string name="apps_key_description">Lets the remote\'s Apps button open MY TV\'s Recent tab. It listens for that one button and reads nothing on screen.</string>
+    <string name="apps_key_description">Lets the remote\'s Apps button open MY TV\'s app switcher. It listens for that one button and reads nothing on screen.</string>
     <string name="menu_row_add">Add to first row</string>
     <string name="menu_row_remove">Remove from first row</string>
 

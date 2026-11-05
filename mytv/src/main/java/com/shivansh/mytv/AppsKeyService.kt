@@ -5,11 +5,11 @@ import android.content.Intent
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 
-/** Opens MY TV on its Recent tab. */
+/** Opens MY TV's app switcher. */
 const val ACTION_SHOW_RECENT = "com.shivansh.mytv.SHOW_RECENT"
 
 /**
- * Makes the remote's Apps button open the Recent tab. Android TV sends that button only to the
+ * Makes the remote's Apps button open the app switcher. Android TV sends that button only to the
  * built-in launcher, so no app ever receives it; an accessibility service is the one place that
  * can. It filters that single key and nothing else, and reads nothing on screen. The user turns it
  * on once in the TV's accessibility settings.

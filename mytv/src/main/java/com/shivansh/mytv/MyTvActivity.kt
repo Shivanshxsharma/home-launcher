@@ -17,7 +17,6 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.text.format.DateFormat
 import android.util.TypedValue
-import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.widget.FrameLayout
@@ -50,6 +49,7 @@ import com.shivansh.mytv.ui.QrCard
 import com.shivansh.mytv.ui.Remote
 import com.shivansh.mytv.ui.RoundOutline
 import com.shivansh.mytv.ui.Scenery
+import com.shivansh.mytv.ui.Switcher
 import com.shivansh.mytv.ui.Tiles
 import com.shivansh.mytv.ui.Ui
 import com.shivansh.mytv.ui.Wall
@@ -63,11 +63,11 @@ import java.security.SecureRandom
  * MY TV. A floating bar of tabs over Home, laid out like Apple TV: a large clock on the wallpaper
  * above one row of your favorite apps, and one press down reveals all the others below it.
  * Favorites fills the screen with the focused film or show's backdrop over a rack of posters.
- * Recent lists the apps you opened, and the remote's Apps button goes straight there. Search finds
- * films and shows on TMDB, and Style sets the wallpaper and clock, from the remote or a phone.
+ * Search finds films and shows on TMDB, and Style sets the wallpaper and clock, from the remote or
+ * a phone. The remote's Apps button opens a stacked app switcher from anywhere.
  */
 class MyTvActivity : Activity(), Link.Listener {
-    private enum class Page { HOME, FAVORITES, RECENT, SEARCH, STYLE }
+    private enum class Page { HOME, FAVORITES, SEARCH, STYLE }
 
     /** Where the remote is. MAIN and SIDE are a page's first and second things. */
     private enum class Zone { BAR, CORNER, FAVS, APPS, ALL, MAIN, SIDE, MOVE }
@@ -89,7 +89,8 @@ class MyTvActivity : Activity(), Link.Listener {
     private lateinit var favRack: Tiles
     private lateinit var appRack: Tiles
     private lateinit var allRack: Tiles
-    private lateinit var recentRack: Tiles
+    private lateinit var switcher: Switcher
+    private lateinit var cardArt: Apps
     private lateinit var results: Tiles
     private lateinit var walls: Tiles
     private lateinit var faces: Tiles
@@ -104,8 +105,6 @@ class MyTvActivity : Activity(), Link.Listener {
     private lateinit var dock: View
     private lateinit var allSheet: View
     private lateinit var appsHint: View
-    private lateinit var recentLabel: TextView
-    private lateinit var recentEmpty: View
     private lateinit var depthGroup: View
     private lateinit var phoneCard: View
     private lateinit var phoneCode: ImageView
@@ -137,6 +136,11 @@ class MyTvActivity : Activity(), Link.Listener {
     /** The rest of the apps, revealed below the first row. */
     private var allOpen = false
     private var allShown = false
+
+    /** MY TV was behind another app when the Apps button came, so Back should return there. */
+    private var away = false
+    private var returnTo: App? = null
+    private var switcherWaiting = false
     private var allLift = 0f
     private var phoneOpen = false
     private var phoneUrl: String? = null
@@ -180,14 +184,11 @@ class MyTvActivity : Activity(), Link.Listener {
         dock = findViewById(R.id.dock)
         allSheet = findViewById(R.id.all_sheet)
         appsHint = findViewById(R.id.rack_apps_hint)
-        recentLabel = findViewById(R.id.recent_label)
-        recentEmpty = findViewById(R.id.recent_empty)
         depthGroup = findViewById(R.id.depth_group)
         phoneCard = findViewById(R.id.phone_card)
         phoneCode = findViewById(R.id.phone_code)
         phoneLink = findViewById(R.id.phone_link)
         pages = mapOf(
-            Page.RECENT to findViewById<View>(R.id.page_recent),
             Page.SEARCH to findViewById<View>(R.id.page_search),
             Page.STYLE to findViewById<View>(R.id.page_style),
         )
@@ -207,12 +208,24 @@ class MyTvActivity : Activity(), Link.Listener {
         favRack = Tiles(favRackView as FrameLayout, Ui.px(RACK_W), Ui.px(RACK_H), Ui.px(RACK_H), Tiles.ROW, top = Ui.px(40))
         appRack = Tiles(findViewById(R.id.dock), Ui.px(APP_W), Ui.px(APP_H), Ui.px(APP_H), Tiles.ROW, left = Ui.px(36), top = Ui.px(36), lift = 1.14f)
         allRack = Tiles(findViewById(R.id.all_grid), Ui.px(APP_W), Ui.px(APP_H), Ui.px(APP_H + LABEL_H), ALL_COLS, left = Ui.px(36), top = Ui.px(16), lift = 1.14f)
-        recentRack = Tiles(findViewById(R.id.recent_dock), Ui.px(APP_W), Ui.px(APP_H), Ui.px(APP_H), Tiles.ROW, left = Ui.px(36), top = Ui.px(36), lift = 1.14f)
         results = Tiles(findViewById(R.id.search_results), Ui.px(RESULT_W), Ui.px(RESULT_H), Ui.px(RESULT_H + LABEL_H), RESULT_COLS, labelRest = 0.7f, left = Ui.px(40))
         walls = Tiles(findViewById(R.id.style_walls), Ui.px(WALL_W), Ui.px(WALL_H), Ui.px(WALL_H), Tiles.ROW, left = Ui.px(36), top = Ui.px(16))
         faces = Tiles(findViewById(R.id.style_faces), Ui.px(WALL_W), Ui.px(FACE_H), Ui.px(FACE_H), Tiles.ROW, left = Ui.px(36), top = Ui.px(16))
         keys = findViewById(R.id.keys)
         keys.onKey = ::onKey
+        cardArt = Apps(this, Ui.px(Switcher.CARD_W), Ui.px(Switcher.CARD_H))
+        switcher = Switcher(
+            findViewById(R.id.switcher),
+            object : Switcher.Listener {
+                override fun onOpenApp(app: App) = openFromSwitcher(app)
+
+                override fun onCloseApp(app: App) = closeApp(app)
+
+                override fun onClearAll() = clearRecents()
+
+                override fun onLeave() = leaveSwitcher()
+            },
+        ) { app, deliver -> cardArt.load(app, deliver) }
 
         glass()
         clockFace.setFace(prefs.getInt(FACE, 0).coerceIn(0, ClockFace.COUNT - 1))
@@ -226,7 +239,11 @@ class MyTvActivity : Activity(), Link.Listener {
         paintScreen(animate = false)
         loadApps()
         loadFavs(offline = true)
-        if (intent?.action == ACTION_SHOW_RECENT) openRecent()
+        // The Apps button started MY TV: the switcher opens as soon as the apps are known.
+        if (intent?.action == ACTION_SHOW_RECENT) {
+            away = true
+            switcherWaiting = true
+        }
     }
 
     /** Frosted panels: the bar, the corner, the dock, the Style sheet, the note and the page behind lists. */
@@ -239,24 +256,22 @@ class MyTvActivity : Activity(), Link.Listener {
         frost(R.id.corner_network, Ui.px(32f), 0x33101218, selectable = true)
         frost(R.id.corner_settings, Ui.px(32f), 0x33101218, selectable = true)
         frost(R.id.dock, Ui.px(48f), 0x26101218)
-        frost(R.id.recent_dock, Ui.px(48f), 0x26101218)
+        frost(R.id.switcher, 0f, 0xA60A0C12.toInt(), edge = false)
         frost(R.id.all_sheet, Ui.px(48f), 0x4D101218)
         frost(R.id.style_sheet, Ui.px(48f), 0x4D101218)
         frost(R.id.phone_card, Ui.px(48f), 0x73101218)
         frost(R.id.note, Ui.px(40f), 0x66101218)
         frost(R.id.page_glass, 0f, 0x8C0B0D12.toInt(), edge = false)
-        for (view in arrayOf(dock, findViewById(R.id.recent_dock))) {
-            view.outlineProvider = RoundOutline(Ui.px(48f))
-            view.clipToOutline = true
-        }
+        dock.outlineProvider = RoundOutline(Ui.px(48f))
+        dock.clipToOutline = true
     }
 
     override fun onResume() {
         super.onResume()
         resumed = true
+        away = false
         paintClock()
         loadApps()
-        fillRecent()
         val now = SystemClock.uptimeMillis()
         if (now - lastRefresh > REFRESH_MS) {
             lastRefresh = now
@@ -280,6 +295,13 @@ class MyTvActivity : Activity(), Link.Listener {
         closePhone()
     }
 
+    override fun onStop() {
+        super.onStop()
+        away = true
+        switcher.close()
+        returnTo = null
+    }
+
     override fun onDestroy() {
         networkWatch?.let { getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(it) }
         super.onDestroy()
@@ -289,13 +311,15 @@ class MyTvActivity : Activity(), Link.Listener {
         super.onNewIntent(intent)
         // Home pressed: back to the first rack.
         if (intent.hasCategory(Intent.CATEGORY_HOME)) {
+            switcher.close()
+            returnTo = null
             endMove()
             corner.leave()
             allOpen = false
             showPage(Page.HOME)
             setZone(Zone.APPS)
         } else if (intent.action == ACTION_SHOW_RECENT) {
-            openRecent()
+            toggleSwitcher()
         }
     }
 
@@ -308,6 +332,10 @@ class MyTvActivity : Activity(), Link.Listener {
     // ---- The remote ----
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (switcher.isOpen) {
+            switcher.key(event)
+            return true
+        }
         if (menu.isOpen) {
             menu.key(event)
             return true
@@ -366,7 +394,6 @@ class MyTvActivity : Activity(), Link.Listener {
             Zone.BAR -> enterPage()
             Zone.CORNER -> openCorner()
             Zone.MAIN -> when (page) {
-                Page.RECENT -> clearRecents()
                 Page.SEARCH -> keys.press()
                 Page.STYLE -> {
                     walls.squish()
@@ -419,11 +446,6 @@ class MyTvActivity : Activity(), Link.Listener {
                 }
             }
             Zone.MAIN -> when (page) {
-                Page.RECENT -> when {
-                    dCol != 0 -> if (recentRack.move(0, dCol)) paintRecentLabel() else recentRack.nudge(0, dCol)
-                    dRow < 0 -> setZone(Zone.BAR)
-                    dRow > 0 -> recentRack.nudge(dRow, 0)
-                }
                 Page.SEARCH -> if (!keys.move(dRow, dCol)) {
                     if (dRow < 0) setZone(Zone.BAR)
                     if (dCol > 0 && results.size > 0) setZone(Zone.SIDE)
@@ -471,12 +493,10 @@ class MyTvActivity : Activity(), Link.Listener {
         favRack.lit = next == Zone.FAVS
         appRack.lit = next == Zone.APPS || next == Zone.MOVE
         allRack.lit = next == Zone.ALL
-        recentRack.lit = page == Page.RECENT && next == Zone.MAIN
         keys.setLit(page == Page.SEARCH && next == Zone.MAIN)
         results.lit = page == Page.SEARCH && next == Zone.SIDE
         walls.lit = page == Page.STYLE && next == Zone.MAIN
         faces.lit = page == Page.STYLE && next == Zone.SIDE
-        paintRecentLabel()
         paintScreen(animate = true)
     }
 
@@ -484,7 +504,6 @@ class MyTvActivity : Activity(), Link.Listener {
         when (page) {
             Page.HOME -> setZone(Zone.APPS)
             Page.FAVORITES -> setZone(if (favs.isNotEmpty() && !link.needed) Zone.FAVS else Zone.BAR)
-            Page.RECENT -> setZone(if (recentRack.size > 0) Zone.MAIN else Zone.BAR)
             else -> setZone(Zone.MAIN)
         }
     }
@@ -530,7 +549,7 @@ class MyTvActivity : Activity(), Link.Listener {
         val home = page == Page.HOME
         val wantHero = page == Page.FAVORITES
         val wantApps = home
-        val wantClock = (home && !allOpen) || page == Page.STYLE || page == Page.RECENT
+        val wantClock = (home && !allOpen) || page == Page.STYLE
         heroShowing = wantHero
         val travel = Ui.px(FLOOR_PX)
         floor(favRackView, wantHero, travel, animate)
@@ -662,7 +681,6 @@ class MyTvActivity : Activity(), Link.Listener {
         zone == Zone.FAVS -> favRack
         zone == Zone.APPS -> appRack
         zone == Zone.ALL -> allRack
-        page == Page.RECENT -> recentRack
         page == Page.SEARCH -> results
         else -> null
     }
@@ -724,7 +742,6 @@ class MyTvActivity : Activity(), Link.Listener {
             val app = focusedApp() ?: return
             items += Menu.Item(getString(R.string.menu_open)) { launch(app) }
             when {
-                page == Page.RECENT -> items += Menu.Item(getString(R.string.menu_recent_remove)) { forgetRecent(app) }
                 zone == Zone.ALL -> items += Menu.Item(getString(R.string.menu_row_add)) { saveRow(rowApps() + app) }
                 else -> {
                     items += Menu.Item(getString(R.string.menu_move)) { setZone(Zone.MOVE) }
@@ -745,6 +762,10 @@ class MyTvActivity : Activity(), Link.Listener {
                 all = fresh
                 apps.prune(fresh)
                 fillApps()
+                if (switcherWaiting) {
+                    switcherWaiting = false
+                    toggleSwitcher()
+                }
             }
         }
     }
@@ -773,7 +794,6 @@ class MyTvActivity : Activity(), Link.Listener {
         allRack.set(restApps().map(::appCell), keep = true)
         fitAll()
         paintAppLabel()
-        fillRecent()
     }
 
     /** The sheet only as tall as its rows, and the first row sitting just above it. */
@@ -790,23 +810,9 @@ class MyTvActivity : Activity(), Link.Listener {
         apps.load(app) { image.setImageBitmap(it) }
     }
 
-    /** The Recent tab's last tile. */
-    private fun clearCell() = Cell(this, Ui.px(APP_W), Ui.px(APP_H)).apply {
-        image.scaleType = ImageView.ScaleType.CENTER
-        image.setImageResource(R.drawable.ic_clear)
-        image.translationY = -Ui.px(14f)
-        words.text = getString(R.string.recent_clear)
-        words.visibility = View.VISIBLE
-        words.gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
-        words.setPadding(0, 0, 0, Ui.px(16))
-        words.typeface = resources.getFont(R.font.geist_medium)
-        words.setTextSize(TypedValue.COMPLEX_UNIT_PX, Ui.px(24f))
-    }
-
     private fun focusedApp(): App? = when (zone) {
         Zone.APPS -> rowApps().getOrNull(appRack.focused)
         Zone.ALL -> restApps().getOrNull(allRack.focused)
-        Zone.MAIN -> if (page == Page.RECENT) recentApps().getOrNull(recentRack.focused) else null
         else -> null
     }
 
@@ -830,49 +836,58 @@ class MyTvActivity : Activity(), Link.Listener {
         all.firstOrNull { it.component.packageName == YOUTUBE }?.let(::noteRecent)
     }
 
-    private fun fillRecent() {
-        val list = recentApps()
-        recentRack.set(list.map(::appCell) + (if (list.isEmpty()) emptyList() else listOf(clearCell())), keep = true)
-        recentEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-        paintRecentLabel()
-    }
-
-    private fun paintRecentLabel() {
-        val here = page == Page.RECENT && zone == Zone.MAIN
-        val list = recentApps()
-        recentLabel.text = when {
-            !here || list.isEmpty() -> getString(R.string.tab_recent)
-            else -> list.getOrNull(recentRack.focused)?.label ?: getString(R.string.recent_clear)
+    /** The Apps button: opens the switcher, or closes it if it's already up. */
+    private fun toggleSwitcher() {
+        if (switcher.isOpen) {
+            leaveSwitcher()
+            return
         }
+        endMove()
+        menu.close()
+        val list = recentApps()
+        returnTo = if (away) list.firstOrNull() else null
+        switcher.open(list)
     }
 
-    private fun forgetRecent(app: App) {
+    private fun openFromSwitcher(app: App) {
+        returnTo = null
+        switcher.close()
+        cardArt.prune(emptyList())
+        launch(app)
+    }
+
+    /** Back, or Apps again: to the app it was opened over, if there was one. */
+    private fun leaveSwitcher() {
+        switcher.close()
+        cardArt.prune(emptyList())
+        val app = returnTo
+        returnTo = null
+        if (app != null) launch(app)
+    }
+
+    /** A card went off the top: the app leaves the list and closes in the background. */
+    private fun closeApp(app: App) {
+        if (returnTo == app) returnTo = null
         prefs.edit().putString(RECENT, recentKeys().filter { it != app.key }.joinToString("|")).apply()
-        fillRecent()
-        if (recentRack.size == 0) setZone(Zone.BAR)
+        stopApps(listOf(app.component.packageName))
     }
 
-    /** Empties the list and closes those apps in the background, as swiping them away would. */
+    /** Empties the list and closes those apps, as swiping them all away would. */
     private fun clearRecents() {
         val names = recentApps().map { it.component.packageName }.distinct()
         prefs.edit().remove(RECENT).apply()
-        fillRecent()
-        setZone(Zone.BAR)
+        returnTo = null
+        switcher.close()
+        cardArt.prune(emptyList())
         showNote(getString(R.string.note_recent_cleared))
+        stopApps(names)
+    }
+
+    private fun stopApps(names: List<String>) {
         Worker.pool.execute {
             val manager = getSystemService(ActivityManager::class.java)
             names.forEach { runCatching { manager.killBackgroundProcesses(it) } }
         }
-    }
-
-    /** The remote's Apps button, through [AppsKeyService]. */
-    private fun openRecent() {
-        endMove()
-        corner.leave()
-        allOpen = false
-        menu.close()
-        showPage(Page.RECENT)
-        enterPage()
     }
 
     private fun endMove() {

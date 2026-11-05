@@ -267,51 +267,6 @@
         android:alpha="0"
         android:visibility="invisible" />
 
-    <!-- ===== Recent: the apps opened lately, in the same place as Home's first row ===== -->
-
-    <FrameLayout
-        android:id="@+id/page_recent"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:alpha="0"
-        android:forceHasOverlappingRendering="false"
-        android:visibility="invisible">
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="136dp"
-            android:layout_gravity="bottom"
-            android:layout_marginBottom="24dp">
-
-            <TextView
-                android:id="@+id/recent_label"
-                style="@style/Heading"
-                android:layout_marginStart="48dp"
-                android:shadowColor="#66000000"
-                android:shadowRadius="6"
-                android:textSize="13dp" />
-
-            <FrameLayout
-                android:id="@+id/recent_dock"
-                android:layout_width="match_parent"
-                android:layout_height="108dp"
-                android:layout_gravity="bottom"
-                android:layout_marginStart="30dp"
-                android:layout_marginEnd="30dp" />
-
-            <TextView
-                android:id="@+id/recent_empty"
-                style="@style/Note"
-                android:layout_width="match_parent"
-                android:layout_height="108dp"
-                android:layout_gravity="bottom"
-                android:gravity="center"
-                android:text="@string/recent_empty"
-                android:textColor="@color/ink"
-                android:textSize="14dp" />
-        </FrameLayout>
-    </FrameLayout>
-
     <!-- ===== Search: films and shows ===== -->
 
     <FrameLayout
@@ -497,10 +452,6 @@
 
             <TextView
                 style="@style/Tab"
-                android:text="@string/tab_recent" />
-
-            <TextView
-                style="@style/Tab"
                 android:text="@string/tab_search" />
 
             <TextView
@@ -584,6 +535,63 @@
                 android:tint="@color/corner_fg" />
         </FrameLayout>
     </LinearLayout>
+
+    <!-- ===== The app switcher: only the remote's Apps button opens it ===== -->
+
+    <FrameLayout
+        android:id="@+id/switcher"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:forceHasOverlappingRendering="false"
+        android:visibility="invisible">
+
+        <TextView
+            android:id="@+id/switcher_title"
+            style="@style/Heading"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="66dp"
+            android:shadowColor="#66000000"
+            android:shadowRadius="8"
+            android:textSize="21dp" />
+
+        <com.shivansh.mytv.ui.CardStack
+            android:id="@+id/switcher_stack"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TextView
+            android:id="@+id/switcher_empty"
+            style="@style/Heading"
+            android:layout_gravity="center"
+            android:text="@string/recent_empty"
+            android:textSize="18dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/switcher_hint"
+            style="@style/Note"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="84dp"
+            android:text="@string/recent_hint"
+            android:textColor="@color/ink"
+            android:textSize="12.5dp" />
+
+        <TextView
+            android:id="@+id/switcher_clear"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="32dp"
+            android:fontFamily="@font/geist_medium"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:text="@string/recent_clear"
+            android:textColor="@color/ink"
+            android:textSize="13dp" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/note"
