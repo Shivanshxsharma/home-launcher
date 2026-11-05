@@ -25,6 +25,12 @@
     <string name="face_weekday">Weekday</string>
     <string name="face_halo">Halo</string>
     <string name="face_serif">Serif</string>
+    <string name="face_stack">Stack</string>
+    <string name="face_month">Month</string>
+    <string name="face_ring">Ring</string>
+    <string name="face_date">Date</string>
+    <string name="face_last">Last app</string>
+    <string name="face_ambient">Ambient</string>
     <string name="style_phone">From phone</string>
     <string name="phone_title">Change it from your phone</string>
     <string name="phone_line">Scan with your phone\'s camera, on the same Wi-Fi. Keep the page as a bookmark.</string>

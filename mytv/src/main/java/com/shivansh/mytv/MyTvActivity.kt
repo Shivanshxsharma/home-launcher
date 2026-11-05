@@ -90,6 +90,7 @@ class MyTvActivity : Activity(), Link.Listener {
     private lateinit var appRack: Tiles
     private lateinit var allRack: Tiles
     private lateinit var switcher: Switcher
+    private lateinit var forceStop: ForceStop
     private lateinit var cardArt: Apps
     private lateinit var results: Tiles
     private lateinit var walls: Tiles
@@ -214,6 +215,7 @@ class MyTvActivity : Activity(), Link.Listener {
         keys = findViewById(R.id.keys)
         keys.onKey = ::onKey
         cardArt = Apps(this, Ui.px(Switcher.CARD_W), Ui.px(Switcher.CARD_H))
+        forceStop = ForceStop(java.io.File(filesDir, "adb"))
         switcher = Switcher(
             findViewById(R.id.switcher),
             object : Switcher.Listener {
@@ -794,6 +796,7 @@ class MyTvActivity : Activity(), Link.Listener {
         allRack.set(restApps().map(::appCell), keep = true)
         fitAll()
         paintAppLabel()
+        paintLastApp()
     }
 
     /** The sheet only as tall as its rows, and the first row sitting just above it. */
@@ -829,7 +832,10 @@ class MyTvActivity : Activity(), Link.Listener {
     private fun noteRecent(app: App) {
         val keys = (listOf(app.key) + recentKeys().filter { it != app.key }).take(RECENT_MAX)
         prefs.edit().putString(RECENT, keys.joinToString("|")).apply()
+        paintLastApp()
     }
+
+    private fun paintLastApp() = clockFace.setLastApp(recentApps().firstOrNull()?.label.orEmpty())
 
     /** A trailer opened YouTube without going through [launch]. */
     private fun noteYouTube() {
@@ -846,6 +852,7 @@ class MyTvActivity : Activity(), Link.Listener {
         menu.close()
         val list = recentApps()
         returnTo = if (away) list.firstOrNull() else null
+        forceStop.allowOffer()
         switcher.open(list)
     }
 
@@ -869,6 +876,7 @@ class MyTvActivity : Activity(), Link.Listener {
     private fun closeApp(app: App) {
         if (returnTo == app) returnTo = null
         prefs.edit().putString(RECENT, recentKeys().filter { it != app.key }.joinToString("|")).apply()
+        paintLastApp()
         stopApps(listOf(app.component.packageName))
     }
 
@@ -876,6 +884,7 @@ class MyTvActivity : Activity(), Link.Listener {
     private fun clearRecents() {
         val names = recentApps().map { it.component.packageName }.distinct()
         prefs.edit().remove(RECENT).apply()
+        paintLastApp()
         returnTo = null
         switcher.close()
         cardArt.prune(emptyList())
@@ -883,11 +892,13 @@ class MyTvActivity : Activity(), Link.Listener {
         stopApps(names)
     }
 
+    /** The ordinary kill at once, then a real force stop, which also ends apps that kill can't. */
     private fun stopApps(names: List<String>) {
         Worker.pool.execute {
             val manager = getSystemService(ActivityManager::class.java)
             names.forEach { runCatching { manager.killBackgroundProcesses(it) } }
         }
+        forceStop.stop(names)
     }
 
     private fun endMove() {
@@ -976,6 +987,7 @@ class MyTvActivity : Activity(), Link.Listener {
 
     private fun faceNames() = listOf(
         R.string.face_glass, R.string.face_flip, R.string.face_moon, R.string.face_weekday, R.string.face_halo, R.string.face_serif,
+        R.string.face_stack, R.string.face_month, R.string.face_ring, R.string.face_date, R.string.face_last, R.string.face_ambient,
     ).map(::getString)
 
     /** Where the chosen wallpaper is in the list; the first if it's been deleted. */

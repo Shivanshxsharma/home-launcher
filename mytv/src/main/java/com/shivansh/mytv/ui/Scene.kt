@@ -9,6 +9,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ImageDecoder
 import android.graphics.LinearGradient
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PorterDuff
@@ -17,6 +18,7 @@ import android.graphics.RadialGradient
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
+import android.graphics.SweepGradient
 import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
@@ -28,6 +30,8 @@ import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.time.temporal.WeekFields
 import java.util.Locale
 import kotlin.math.PI
 import kotlin.math.abs
@@ -223,6 +227,16 @@ class Scenery(private val lower: ImageView, private val upper: ImageView, privat
  * - Weekday: pale thin digits with the day written across them.
  * - Halo: a thin ring that fills through the hour.
  * - Serif: a high-contrast editorial face.
+ *
+ * And six compact panels at the left, leaving the scenery clear. They show only what the box really
+ * knows, with no made-up tiles: nothing that needs a location, an account or a service.
+ *
+ * - Stack: the hour over the minutes.
+ * - Month: the time above this month's calendar.
+ * - Ring: the time inside a ring that fills through the hour.
+ * - Date: the date as a card.
+ * - Last app: the time and the app opened last.
+ * - Ambient: tonight's moon, its phase and how much of it is lit.
  */
 class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val tall = context.resources.getFont(R.font.sofia_tall)
@@ -250,6 +264,7 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private var weekday = ""
     private var date = ""
     private var longDate = ""
+    private var lastAppName = ""
     private var turn = 1f
     private var turning: ValueAnimator? = null
 
@@ -261,6 +276,13 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     fun setFace(index: Int) {
         face = index
         invalidate()
+    }
+
+    /** The app opened last, for the Last app face; empty if none. */
+    fun setLastApp(label: String) {
+        if (label == lastAppName) return
+        lastAppName = label
+        if (face == LAST_APP) invalidate()
     }
 
     fun set(now: LocalDateTime, hour: String, meridiem: String) {
@@ -281,7 +303,7 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             invalidate()
             // Only the cached layer's alpha moves. Redrawing these big shapes on every frame, as a
             // rolling minute did, held the whole screen at 30 fps for a second each minute.
-            if (changed && isShown) {
+            if (changed && isShown && face <= SERIF) {
                 alpha = 0.7f
                 animate().alpha(1f).setDuration(Motion.ms(600)).setStartDelay(0).setInterpolator(Motion.EASE)
             }
@@ -324,12 +346,26 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
     override fun onDraw(canvas: Canvas) {
         when (face) {
-            GLASS -> glass(canvas)
-            FLIP -> flip(canvas)
-            MOON -> moonDial(canvas)
-            WEEKDAY_FACE -> weekday(canvas)
-            HALO -> halo(canvas)
-            else -> serif(canvas)
+            STACK -> stack(canvas)
+            MONTH -> month(canvas)
+            RING -> ring(canvas)
+            DATE_CARD -> dateCard(canvas)
+            LAST_APP -> lastApp(canvas)
+            AMBIENT -> ambient(canvas)
+            else -> {
+                // The large faces sit lower than the top of this view, under the bar.
+                canvas.save()
+                canvas.translate(0f, px(LARGE_TOP))
+                when (face) {
+                    GLASS -> glass(canvas)
+                    FLIP -> flip(canvas)
+                    MOON -> moonDial(canvas)
+                    WEEKDAY_FACE -> weekday(canvas)
+                    HALO -> halo(canvas)
+                    else -> serif(canvas)
+                }
+                canvas.restore()
+            }
         }
     }
 
@@ -361,6 +397,7 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         val left = width / 2f - w - gap / 2f
         caption(longDate, width / 2f, px(40f), canvas, center = true)
         getLocationInWindow(where)
+        where[1] += px(LARGE_TOP).toInt()
         digits(semibold, 226f, -0.02f, shadow = false)
         text.textAlign = Paint.Align.CENTER
         text.getTextBounds("0", 0, 1, bounds)
@@ -439,9 +476,10 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
     private fun moonDial(canvas: Canvas) {
         val cx = width / 2f
-        val cy = height / 2f
-        val r = height / 2f - px(4f)
+        val cy = px(LARGE_H) / 2f
+        val r = px(LARGE_H) / 2f - px(4f)
         getLocationInWindow(where)
+        where[1] += px(LARGE_TOP).toInt()
         val root = rootView
         // The dial: frost under smoked glass, on a soft shadow.
         fill.reset()
@@ -519,10 +557,15 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         line.clearShadowLayer()
     }
 
-    /** Tonight's moon, from the 29.53-day cycle counted from a known new moon. */
-    private fun moon(canvas: Canvas, cx: Float, cy: Float, r: Float) {
+    /** Where the moon is in its cycle, 0 to 1, counted from a known new moon. */
+    private fun moonPhase(): Double {
         val days = (time.toEpochSecond(ZoneOffset.UTC) - NEW_MOON) / 86400.0
-        val phase = ((days / SYNODIC) % 1.0 + 1.0) % 1.0
+        return ((days / SYNODIC) % 1.0 + 1.0) % 1.0
+    }
+
+    /** Tonight's moon, drawn from its real phase. */
+    private fun moon(canvas: Canvas, cx: Float, cy: Float, r: Float) {
+        val phase = moonPhase()
         val waxing = phase < 0.5
         val k = cos(phase * 2 * PI).toFloat()
         fill.color = 0x26F6E4D2
@@ -553,8 +596,8 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
     private fun halo(canvas: Canvas) {
         val cx = width / 2f
-        val cy = height / 2f
-        val r = height / 2f - px(20f)
+        val cy = px(LARGE_H) / 2f
+        val r = px(LARGE_H) / 2f - px(20f)
         line.reset()
         line.isAntiAlias = true
         line.style = Paint.Style.STROKE
@@ -603,6 +646,228 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         caption(longDate, px(8f), px(386f), canvas, center = false)
     }
 
+    // ---- The panels: compact faces at the left, showing only what the box really knows ----
+
+    private fun panel(canvas: Canvas, x: Float, y: Float, w: Float, h: Float, r: Float) {
+        fill.reset()
+        fill.isAntiAlias = true
+        fill.color = 0x4D000000
+        fill.setShadowLayer(px(32f), 0f, px(14f), 0x8C000000.toInt())
+        box.set(x, y, x + w, y + h)
+        canvas.drawRoundRect(box, r, r, fill)
+        fill.clearShadowLayer()
+        getLocationInWindow(where)
+        val root = rootView
+        canvas.save()
+        canvas.translate(x, y)
+        box.set(0f, 0f, w, h)
+        Frost.draw(canvas, box, r, where[0] + x, where[1] + y, root.width.toFloat(), root.height.toFloat(), PANEL_TINT)
+        canvas.restore()
+        line.reset()
+        line.isAntiAlias = true
+        line.style = Paint.Style.STROKE
+        line.strokeWidth = px(2f)
+        line.shader = LinearGradient(0f, y, 0f, y + h, 0x59FFFFFF, 0x12FFFFFF, Shader.TileMode.CLAMP)
+        box.set(x + px(1f), y + px(1f), x + w - px(1f), y + h - px(1f))
+        canvas.drawRoundRect(box, r, r, line)
+        line.shader = null
+    }
+
+    private fun write(
+        canvas: Canvas,
+        words: String,
+        x: Float,
+        y: Float,
+        size: Float,
+        face: Typeface = medium,
+        color: Int = Palette.INK,
+        align: Paint.Align = Paint.Align.CENTER,
+        spacing: Float = 0f,
+    ) {
+        small.reset()
+        small.isAntiAlias = true
+        small.typeface = face
+        small.textSize = px(size)
+        small.color = color
+        small.textAlign = align
+        small.letterSpacing = spacing
+        small.fontFeatureSettings = "tnum"
+        canvas.drawText(words, x, y, small)
+    }
+
+    /** The time centred on [cx], with AM or PM beside it, small, on a 12-hour clock. */
+    private fun timeLine(canvas: Canvas, cx: Float, y: Float, size: Float, face: Typeface = semibold) {
+        val words = "$hour:$minute"
+        small.reset()
+        small.typeface = face
+        small.textSize = px(size)
+        small.fontFeatureSettings = "tnum"
+        val w = small.measureText(words)
+        small.typeface = medium
+        small.textSize = px(size * 0.26f)
+        val tag = if (meridiem.isEmpty()) 0f else small.measureText(meridiem) + px(8f)
+        val left = cx - (w + tag) / 2f
+        write(canvas, words, left, y, size, face, align = Paint.Align.LEFT)
+        if (meridiem.isNotEmpty()) write(canvas, meridiem, left + w + px(8f), y, size * 0.26f, align = Paint.Align.LEFT)
+    }
+
+    private fun rule(canvas: Canvas, x0: Float, x1: Float, y: Float) {
+        line.reset()
+        line.isAntiAlias = true
+        line.strokeWidth = px(2f)
+        line.color = 0x2EFFFFFF
+        canvas.drawLine(x0, y, x1, y, line)
+    }
+
+    /** The thin coloured line down the edge of a panel. */
+    private fun accent(canvas: Canvas, x: Float, y0: Float, y1: Float) {
+        line.reset()
+        line.isAntiAlias = true
+        line.strokeCap = Paint.Cap.ROUND
+        line.strokeWidth = px(5f)
+        line.shader = LinearGradient(0f, y0, 0f, y1, ACCENT, null, Shader.TileMode.CLAMP)
+        canvas.drawLine(x, y0, x, y1, line)
+        line.shader = null
+    }
+
+    private fun stack(canvas: Canvas) {
+        val w = px(300f)
+        val y = px(12f)
+        panel(canvas, 0f, y, w, px(440f), px(44f))
+        accent(canvas, px(22f), y + px(44f), y + px(396f))
+        val cx = w / 2f + px(8f)
+        digits(light, 158f, -0.02f, shadow = false)
+        text.textAlign = Paint.Align.CENTER
+        canvas.drawText(hour.padStart(2, '0'), cx, y + px(178f), text)
+        canvas.drawText(minute, cx, y + px(326f), text)
+        write(canvas, time.format(SHORT_DATE), cx, y + px(396f), 30f)
+    }
+
+    private fun month(canvas: Canvas) {
+        val w = px(400f)
+        val y = px(12f)
+        val cx = w / 2f
+        panel(canvas, 0f, y, w, px(572f), px(44f))
+        timeLine(canvas, cx, y + px(112f), 92f)
+        write(canvas, longDate, cx, y + px(160f), 25f, color = 0xE6FFFFFF.toInt())
+        rule(canvas, px(32f), w - px(32f), y + px(190f))
+        val first = time.toLocalDate().withDayOfMonth(1)
+        val start = WeekFields.of(Locale.getDefault()).firstDayOfWeek
+        val pitch = (w - px(44f)) / 7f
+        val left = px(22f) + pitch / 2f
+        for (i in 0 until 7) {
+            val day = start.plus(i.toLong()).getDisplayName(TextStyle.NARROW, Locale.getDefault())
+            write(canvas, day, left + i * pitch, y + px(232f), 21f, color = 0x99FFFFFF.toInt())
+        }
+        val offset = (first.dayOfWeek.value - start.value + 7) % 7
+        for (d in 1..first.lengthOfMonth()) {
+            val cell = offset + d - 1
+            val x = left + (cell % 7) * pitch
+            val baseline = y + px(282f) + (cell / 7) * px(50f)
+            val today = d == time.dayOfMonth
+            if (today) {
+                fill.reset()
+                fill.isAntiAlias = true
+                fill.color = Palette.INK
+                canvas.drawCircle(x, baseline - px(8f), px(21f), fill)
+            }
+            write(canvas, d.toString(), x, baseline, 23f, color = if (today) Palette.DARK else Palette.INK)
+        }
+    }
+
+    /** The ring fills through the hour, so it shows something real. */
+    private fun ring(canvas: Canvas) {
+        val d = px(400f)
+        val y = px(12f)
+        val r = d / 2f
+        panel(canvas, 0f, y, d, d, r)
+        val cy = y + r
+        val rr = r - px(26f)
+        line.reset()
+        line.isAntiAlias = true
+        line.style = Paint.Style.STROKE
+        line.strokeCap = Paint.Cap.ROUND
+        line.strokeWidth = px(11f)
+        line.color = 0x2EFFFFFF
+        canvas.drawCircle(r, cy, rr, line)
+        line.color = Palette.INK
+        line.shader = SweepGradient(r, cy, ACCENT, null).apply {
+            setLocalMatrix(Matrix().apply { setRotate(-92f, r, cy) })
+        }
+        box.set(r - rr, cy - rr, r + rr, cy + rr)
+        canvas.drawArc(box, -90f, (time.minute + 0.5f) / 60f * 360f, false, line)
+        line.shader = null
+        timeLine(canvas, r, cy + px(26f), 92f, light)
+        write(canvas, time.format(SHORT_DATE), r, cy + px(78f), 27f, color = 0xE6FFFFFF.toInt())
+    }
+
+    private fun dateCard(canvas: Canvas) {
+        val w = px(300f)
+        val y = px(12f)
+        val cx = w / 2f
+        panel(canvas, 0f, y, w, px(530f), px(44f))
+        write(canvas, time.format(SHORT_DAY).uppercase(Locale.getDefault()), cx, y + px(76f), 42f, spacing = 0.06f)
+        digits(semibold, 164f, -0.02f, shadow = false)
+        text.textAlign = Paint.Align.CENTER
+        canvas.drawText("%02d".format(time.dayOfMonth), cx, y + px(232f), text)
+        write(canvas, time.format(SHORT_MONTH).uppercase(Locale.getDefault()), cx, y + px(296f), 42f, spacing = 0.06f)
+        fill.reset()
+        fill.isAntiAlias = true
+        fill.shader = LinearGradient(px(24f), 0f, w - px(24f), 0f, ACCENT, null, Shader.TileMode.CLAMP)
+        box.set(px(24f), y + px(330f), w - px(24f), y + px(392f))
+        canvas.drawRoundRect(box, px(22f), px(22f), fill)
+        fill.shader = null
+        timeLine(canvas, cx, y + px(486f), 74f)
+    }
+
+    private fun lastApp(canvas: Canvas) {
+        val w = px(360f)
+        val y = px(12f)
+        val cx = w / 2f
+        val shown = lastAppName.isNotEmpty()
+        panel(canvas, 0f, y, w, px(if (shown) 368f else 214f), px(44f))
+        timeLine(canvas, cx, y + px(116f), 92f)
+        write(canvas, time.format(SHORT_DATE), cx, y + px(168f), 28f, color = 0xE6FFFFFF.toInt())
+        if (!shown) return
+        rule(canvas, px(32f), w - px(32f), y + px(204f))
+        write(canvas, "LAST OPENED", cx, y + px(254f), 19f, color = 0x99FFFFFF.toInt(), spacing = 0.12f)
+        small.textSize = px(34f)
+        small.typeface = medium
+        var name = lastAppName
+        while (name.length > 3 && small.measureText(name) > w - px(56f)) name = name.dropLast(2) + "…"
+        write(canvas, name, cx, y + px(310f), 34f)
+    }
+
+    private fun ambient(canvas: Canvas) {
+        val y = px(12f)
+        accent(canvas, px(6f), y + px(14f), y + px(452f))
+        val x = px(38f)
+        moon(canvas, x + px(44f), y + px(62f), px(44f))
+        digits(light, 112f, -0.02f)
+        canvas.drawText("$hour:$minute", x, y + px(242f), text)
+        if (meridiem.isNotEmpty()) {
+            val after = x + text.measureText("$hour:$minute") + px(10f)
+            caption(meridiem, after, y + px(242f), canvas, center = false, size = 28f)
+        }
+        caption(longDate, x + px(2f), y + px(298f), canvas, center = false, size = 30f)
+        rule(canvas, x, x + px(300f), y + px(336f))
+        val phase = moonPhase()
+        val lit = ((1.0 - cos(phase * 2 * PI)) / 2.0 * 100.0).roundToInt()
+        caption(moonName(phase), x + px(2f), y + px(390f), canvas, center = false, size = 30f)
+        caption("$lit% lit tonight", x + px(2f), y + px(434f), canvas, center = false, size = 25f, color = 0xCCFFFFFF.toInt())
+    }
+
+    private fun moonName(phase: Double) = when {
+        phase < 0.03 || phase >= 0.97 -> "New moon"
+        phase < 0.22 -> "Waxing crescent"
+        phase < 0.28 -> "First quarter"
+        phase < 0.47 -> "Waxing gibbous"
+        phase < 0.53 -> "Full moon"
+        phase < 0.72 -> "Waning gibbous"
+        phase < 0.78 -> "Last quarter"
+        else -> "Waning crescent"
+    }
+
     companion object {
         const val GLASS = 0
         const val FLIP = 1
@@ -610,7 +875,21 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         const val WEEKDAY_FACE = 3
         const val HALO = 4
         const val SERIF = 5
-        const val COUNT = 6
+        const val STACK = 6
+        const val MONTH = 7
+        const val RING = 8
+        const val DATE_CARD = 9
+        const val LAST_APP = 10
+        const val AMBIENT = 11
+        const val COUNT = 12
+
+        /** Where the large faces start in this view, and the room they were designed for. */
+        private const val LARGE_TOP = 108f
+        private const val LARGE_H = 480f
+        private const val PANEL_TINT = 0x8C0E1118.toInt()
+
+        /** Violet into pink into orange, the panels' one touch of colour. */
+        private val ACCENT = intArrayOf(0xFF7C5CFF.toInt(), 0xFFE05CC8.toInt(), 0xFFFF9A5C.toInt())
         private const val GOLD = 0xFFE7C4A6.toInt()
         private const val SYNODIC = 29.530588853
 
@@ -618,5 +897,8 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         private const val NEW_MOON = 947182440L
         private val WEEKDAY: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE", Locale.getDefault())
         private val DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM", Locale.getDefault())
+        private val SHORT_DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE, d MMM", Locale.getDefault())
+        private val SHORT_DAY: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+        private val SHORT_MONTH: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM", Locale.getDefault())
     }
 }
