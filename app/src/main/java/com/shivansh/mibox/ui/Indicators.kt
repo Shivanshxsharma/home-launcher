@@ -46,9 +46,9 @@ class HeroDots @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
     }
 
     /**
-     * Fills the current bar over [durationMs], the time until the next slide. It steps ten times a
-     * second rather than every frame (well under a pixel a step), so a playing preview doesn't keep
-     * the whole UI redrawing at 60 fps just for this bar.
+     * Fills the current bar over [durationMs], the time until the next slide. It steps about three
+     * times a second rather than every frame (still about a pixel a step): each step repaints the
+     * whole window, so this small bar mustn't keep the UI redrawing.
      */
     fun run(durationMs: Long) {
         removeCallbacks(tick)
@@ -72,7 +72,7 @@ class HeroDots @JvmOverloads constructor(context: Context, attrs: AttributeSet? 
             if (fillDuration <= 0) return
             progress = ((SystemClock.uptimeMillis() - fillStart).toFloat() / fillDuration).coerceIn(0f, 1f)
             invalidate()
-            if (progress < 1f) postDelayed(this, 100)
+            if (progress < 1f) postDelayed(this, 300)
         }
     }
 

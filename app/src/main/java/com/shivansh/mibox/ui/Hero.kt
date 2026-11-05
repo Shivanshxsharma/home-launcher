@@ -214,6 +214,19 @@ class Hero(
     /** Moving between the buttons restarts the slide's clock, so it doesn't change under the remote. */
     fun holdSlide() = restartTimer()
 
+    /** Nobody has touched the remote for a while: stay on this slide, so the launcher goes still. */
+    var resting = false
+        set(value) {
+            if (field == value) return
+            field = value
+            if (value) {
+                handler.removeCallbacks(advance)
+                dots.hold()
+            } else {
+                restartTimer()
+            }
+        }
+
     /** Auto-advance runs only while the hero has focus and the launcher is on screen. */
     fun setRunning(on: Boolean) {
         if (on == running) return
@@ -261,7 +274,7 @@ class Hero(
 
     private fun restartTimer() {
         handler.removeCallbacks(advance)
-        if (!running) return
+        if (!running || resting) return
         handler.postDelayed(advance, SLIDE_MS)
         dots.run(SLIDE_MS)
     }

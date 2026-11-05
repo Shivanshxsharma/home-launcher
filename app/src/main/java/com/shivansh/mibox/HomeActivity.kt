@@ -167,6 +167,7 @@ class HomeActivity : Activity(), Previews.Listener {
     private var previewDim = 0f
     private val main = Handler(Looper.getMainLooper())
     private val toAmbient = Runnable { enterAmbient() }
+    private val restHero = Runnable { hero.resting = true }
     private val hideNote = Runnable { note.fadeTo(0f, 400) }
 
     /** List changes sent to TMDB that a fetched list may not show yet: key to (on, when). */
@@ -390,6 +391,7 @@ class HomeActivity : Activity(), Previews.Listener {
             if (pageSignin.visibility == View.VISIBLE) signIn.start()
         }
         hero.setRunning(nav.row == 0 && page == Page.HOME)
+        wake()
         if (page == Page.HOME) {
             if (area == Area.HOME) nav.refocus() else onMove(nav.row, nav.col, rowChanged = false)
         }
@@ -413,6 +415,7 @@ class HomeActivity : Activity(), Previews.Listener {
         menu.close()
         stopMoving()
         hero.setRunning(false)
+        main.removeCallbacks(restHero)
         main.removeCallbacks(toAmbient)
         exitAmbient()
         previews.release()
@@ -455,7 +458,18 @@ class HomeActivity : Activity(), Previews.Listener {
         }
     }
 
+    /** Someone's here: the slideshow carries on, and rests again after a quiet spell. */
+    private fun wake() {
+        hero.resting = false
+        main.removeCallbacks(restHero)
+        main.postDelayed(restHero, REST_MS)
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            wake()
+            backdrop.stopDrift()
+        }
         // In ambient mode the first press of anything only brings the UI back.
         if (ambient && event.keyCode != KeyEvent.KEYCODE_HOME) {
             if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
@@ -1754,6 +1768,9 @@ class HomeActivity : Activity(), Previews.Listener {
 
         /** Quiet time with a hero preview playing before the UI steps back. */
         const val AMBIENT_MS = 2800L
+
+        /** With no remote input for this long the hero stops changing, and nothing redraws. */
+        const val REST_MS = 60_000L
 
         const val TAB_SETTLE_MS = 260L
 

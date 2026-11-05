@@ -116,8 +116,10 @@ class BackdropSlot @JvmOverloads constructor(context: Context, attrs: AttributeS
     }
 
     /**
-     * The slow Ken Burns push: 7% over 14 s, mostly in the first few seconds. Its own animator, so it
-     * never merges with the slot's crossfade (ViewPropertyAnimator batches calls made in one frame).
+     * A short Ken Burns push as a picture arrives, finished well before the next slide. It used to
+     * take 14 s, longer than a slide stays up, so the whole screen redrew at ~45 fps for as long as
+     * the hero ran. Its own animator, so it never merges with the slot's crossfade
+     * (ViewPropertyAnimator batches calls made in one frame).
      */
     fun startDrift() {
         drift?.cancel()
@@ -126,10 +128,10 @@ class BackdropSlot @JvmOverloads constructor(context: Context, attrs: AttributeS
         if (!DRIFT) return
         drift = ObjectAnimator.ofPropertyValuesHolder(
             this,
-            PropertyValuesHolder.ofFloat(SCALE_X, 1.07f),
-            PropertyValuesHolder.ofFloat(SCALE_Y, 1.07f),
+            PropertyValuesHolder.ofFloat(SCALE_X, 1.04f),
+            PropertyValuesHolder.ofFloat(SCALE_Y, 1.04f),
         ).apply {
-            duration = 14_000
+            duration = 4_000
             interpolator = Motion.DRIFT
             start()
         }
@@ -187,6 +189,11 @@ class Backdrop(
         wanted = if (shaded) path + SHADED else path
         main.removeCallbacks(pump)
         if (delayMs > 0) main.postDelayed(pump, delayMs) else pump()
+    }
+
+    /** The remote moved: the zoom stops where it is, so it never competes with the focus animation. */
+    fun stopDrift() {
+        for (slot in arrayOf(lower, upper)) slot.holdDrift(true)
     }
 
     /** Fades the art away to show the preview playing under it, or brings it back. */
