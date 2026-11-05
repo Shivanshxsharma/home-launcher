@@ -273,6 +273,7 @@ class MyTvActivity : Activity(), Link.Listener {
         resumed = true
         away = false
         paintClock()
+        paintLastApp()
         loadApps()
         val now = SystemClock.uptimeMillis()
         if (now - lastRefresh > REFRESH_MS) {
@@ -750,6 +751,7 @@ class MyTvActivity : Activity(), Link.Listener {
                     items += Menu.Item(getString(R.string.menu_row_remove)) { saveRow(rowApps() - app) }
                 }
             }
+            items += Menu.Item(getString(R.string.menu_prime)) { setPrimeButton(app) }
         }
         menu.open(items)
     }
@@ -821,17 +823,14 @@ class MyTvActivity : Activity(), Link.Listener {
 
     // ---- Recent ----
 
-    private fun recentKeys() = prefs.getString(RECENT, null)?.split('|').orEmpty().filter { it.isNotEmpty() }
-
     /**
      * The apps opened from MY TV, latest first. It keeps its own list because Android doesn't show
      * one app another's recents, so apps opened some other way aren't on it.
      */
-    private fun recentApps() = recentKeys().mapNotNull { key -> all.firstOrNull { it.key == key } }
+    private fun recentApps() = Recents.keys(prefs).mapNotNull { key -> all.firstOrNull { it.key == key } }
 
     private fun noteRecent(app: App) {
-        val keys = (listOf(app.key) + recentKeys().filter { it != app.key }).take(RECENT_MAX)
-        prefs.edit().putString(RECENT, keys.joinToString("|")).apply()
+        Recents.note(prefs, app.key)
         paintLastApp()
     }
 
@@ -875,7 +874,7 @@ class MyTvActivity : Activity(), Link.Listener {
     /** A card went off the top: the app leaves the list and closes in the background. */
     private fun closeApp(app: App) {
         if (returnTo == app) returnTo = null
-        prefs.edit().putString(RECENT, recentKeys().filter { it != app.key }.joinToString("|")).apply()
+        Recents.forget(prefs, app.key)
         paintLastApp()
         stopApps(listOf(app.component.packageName))
     }
@@ -883,7 +882,7 @@ class MyTvActivity : Activity(), Link.Listener {
     /** Empties the list and closes those apps, as swiping them all away would. */
     private fun clearRecents() {
         val names = recentApps().map { it.component.packageName }.distinct()
-        prefs.edit().remove(RECENT).apply()
+        Recents.clear(prefs)
         paintLastApp()
         returnTo = null
         switcher.close()
@@ -901,12 +900,18 @@ class MyTvActivity : Activity(), Link.Listener {
         forceStop.stop(names)
     }
 
+    private fun setPrimeButton(app: App) {
+        prefs.edit().putString(PRIME_BUTTON, app.component.packageName).apply()
+        showNote(getString(R.string.note_prime, app.label))
+    }
+
     private fun endMove() {
         if (zone != Zone.MOVE) return
         setZone(Zone.APPS)
     }
 
     private fun launch(app: App) {
+        if (app.component.packageName == PRIME_VIDEO) PrimeGate.allow()
         val category = if (app.leanback) Intent.CATEGORY_LEANBACK_LAUNCHER else Intent.CATEGORY_LAUNCHER
         val intent = Intent(Intent.ACTION_MAIN).addCategory(category).setComponent(app.component)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
@@ -1151,11 +1156,9 @@ class MyTvActivity : Activity(), Link.Listener {
             "in.startv.hotstar", "app.netmirror.newtv", "com.sonyliv",
         )
         const val ROW_SIZE = 6
-        const val RECENT_MAX = 12
         const val YOUTUBE = "com.google.android.youtube.tv"
 
         const val ROW = "app_row"
-        const val RECENT = "recent_apps"
         const val WALLPAPER = "wall_id"
         const val FACE = "clock_face"
         const val ROTATE = "rotate"

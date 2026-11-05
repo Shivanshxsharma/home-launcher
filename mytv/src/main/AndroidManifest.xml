@@ -62,7 +62,21 @@
             </intent-filter>
         </activity>
 
-        <!-- The remote's Apps button opens Recent. Off until the user turns it on in the TV's settings. -->
+        <!-- The remote's Netflix button arrives as this link: it opens YouTube instead. -->
+        <activity
+            android:name=".NetflixButtonActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="nflx" />
+            </intent-filter>
+        </activity>
+
+        <!-- The remote's Apps and Prime buttons. Off until the user turns it on in the TV's settings. -->
         <service
             android:name=".AppsKeyService"
             android:exported="true"

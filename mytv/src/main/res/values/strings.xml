@@ -41,9 +41,11 @@
     <string name="recent_hint">OK opens  ·  Up closes the app  ·  Down for Clear all</string>
     <string name="recent_clear">Clear all</string>
     <string name="note_recent_cleared">Recent apps cleared and closed</string>
-    <string name="apps_key_label">MY TV: Apps button</string>
-    <string name="apps_key_description">Lets the remote\'s Apps button open MY TV\'s app switcher. It listens for that one button and reads nothing on screen.</string>
+    <string name="apps_key_label">MY TV: remote buttons</string>
+    <string name="apps_key_description">Lets the remote\'s Apps and Prime buttons do what you chose in MY TV. It catches the Apps button and sees the names of apps as they open, but never what is on screen.</string>
     <string name="menu_row_add">Add to first row</string>
+    <string name="menu_prime">Use for Prime button</string>
+    <string name="note_prime">Prime button now opens %1$s</string>
     <string name="menu_row_remove">Remove from first row</string>
 
     <string name="menu_open">Open</string>

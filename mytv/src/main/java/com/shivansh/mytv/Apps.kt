@@ -3,6 +3,7 @@ package com.shivansh.mytv
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -89,4 +90,20 @@ class Apps(private val context: Context, private val width: Int, private val hei
         d.setBounds(l, t, l + w, t + h)
         d.draw(canvas)
     }
+}
+
+/** The apps opened lately, latest first: MY TV's own list, as Android doesn't show one app another's. */
+object Recents {
+    private const val KEY = "recent_apps"
+    private const val MAX = 12
+
+    fun keys(prefs: SharedPreferences) = prefs.getString(KEY, null)?.split('|').orEmpty().filter { it.isNotEmpty() }
+
+    fun note(prefs: SharedPreferences, key: String) = save(prefs, (listOf(key) + keys(prefs).filter { it != key }).take(MAX))
+
+    fun forget(prefs: SharedPreferences, key: String) = save(prefs, keys(prefs).filter { it != key })
+
+    fun clear(prefs: SharedPreferences) = prefs.edit().remove(KEY).apply()
+
+    private fun save(prefs: SharedPreferences, keys: List<String>) = prefs.edit().putString(KEY, keys.joinToString("|")).apply()
 }
