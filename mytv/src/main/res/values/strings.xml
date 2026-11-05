@@ -4,14 +4,13 @@
 
     <string name="tab_home">Home</string>
     <string name="tab_favorites">Favorites</string>
+    <string name="tab_recent">Recent</string>
     <string name="tab_search">Search</string>
     <string name="tab_style">Style</string>
 
     <string name="row_apps">Apps</string>
     <string name="kicker_film">Film</string>
     <string name="kicker_series">Series</string>
-    <string name="favs_title">Favorites</string>
-    <string name="favs_hint">OK opens a title. Hold OK for its trailer, or to remove it.</string>
     <string name="favs_empty_title">No favorites yet</string>
     <string name="favs_empty_line">Find a film or show in Search, hold OK, and choose Add to Favorites.</string>
     <string name="search_placeholder">Search films and shows</string>
@@ -32,7 +31,13 @@
     <string name="phone_line">Scan with your phone\'s camera, on the same Wi-Fi. Keep the page as a bookmark.</string>
     <string name="phone_offline">The TV isn\'t on a network</string>
     <string name="all_apps">All apps</string>
-    <string name="all_none">Every app is in the first row</string>
+    <string name="all_hint">All apps  ↓</string>
+    <string name="recent_empty">Apps you open from MY TV will show up here</string>
+    <string name="recent_clear">Clear all</string>
+    <string name="note_recent_cleared">Recent apps cleared and closed</string>
+    <string name="menu_recent_remove">Remove from Recent</string>
+    <string name="apps_key_label">MY TV: Apps button</string>
+    <string name="apps_key_description">Lets the remote\'s Apps button open MY TV\'s Recent tab. It listens for that one button and reads nothing on screen.</string>
     <string name="menu_row_add">Add to first row</string>
     <string name="menu_row_remove">Remove from first row</string>
 

@@ -19,15 +19,15 @@
     <!-- Sizes in dp, so the TV's font scale can't break the layout. -->
     <style name="Tab">
         <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">32dp</item>
+        <item name="android:layout_height">28dp</item>
         <item name="android:gravity">center</item>
-        <item name="android:paddingStart">16dp</item>
-        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingStart">15dp</item>
+        <item name="android:paddingEnd">15dp</item>
         <item name="android:fontFamily">@font/geist_medium</item>
         <item name="android:includeFontPadding">false</item>
         <item name="android:singleLine">true</item>
         <item name="android:textColor">@color/ink</item>
-        <item name="android:textSize">13dp</item>
+        <item name="android:textSize">12.5dp</item>
     </style>
 
     <style name="Heading">

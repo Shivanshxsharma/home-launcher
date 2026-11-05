@@ -24,6 +24,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.ImageView
 import com.shivansh.mytv.R
+import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -50,6 +51,10 @@ object Decode {
     fun asset(assets: AssetManager, path: String, width: Int, height: Int, mutable: Boolean = false): Bitmap =
         ImageDecoder.decodeBitmap(ImageDecoder.createSource(assets, path)) { decoder, info, _ -> target(decoder, info, width, height, mutable) }
 
+    /** A picture on disk: one the phone sent, or a wallpaper made from one. */
+    fun file(file: File, width: Int, height: Int, mutable: Boolean = false): Bitmap =
+        ImageDecoder.decodeBitmap(ImageDecoder.createSource(file)) { decoder, info, _ -> target(decoder, info, width, height, mutable) }
+
     /** TMDB art by URL, downloaded once into [ImageFiles]. */
     fun url(url: String, width: Int, height: Int, mutable: Boolean = false): Bitmap =
         ImageDecoder.decodeBitmap(ImageDecoder.createSource(ImageFiles.file(url))) { decoder, info, _ -> target(decoder, info, width, height, mutable) }
@@ -68,8 +73,8 @@ class Scenery(private val lower: ImageView, private val upper: ImageView, privat
     private var fade = 0L
     private val settle = Runnable { load() }
 
-    fun wallpaper(index: Int, fadeMs: Long) {
-        if (index in NAMES.indices) change(path(index), delayMs = 0, fadeMs = fadeMs)
+    fun wallpaper(wall: Wall?, fadeMs: Long) {
+        if (wall != null) change(wall.picture, delayMs = 0, fadeMs = fadeMs)
     }
 
     /** A backdrop, after focus has rested, so moving along a row doesn't decode every one. */
@@ -87,15 +92,20 @@ class Scenery(private val lower: ImageView, private val upper: ImageView, privat
         val key = wanted ?: return
         val gen = ++generation
         val web = key.startsWith("https://")
+        val added = key.startsWith("/")
         (if (web) Worker.net else Worker.pool).execute {
             var frost: Bitmap? = null
             var front: Bitmap? = null
             val bitmap = runCatching {
-                val picture = if (web) Decode.url(key, 1280, 720, mutable = true) else Decode.asset(assets, key, 1920, 1080, mutable = true)
+                val picture = when {
+                    web -> Decode.url(key, 1280, 720, mutable = true)
+                    added -> Decode.file(File(key), 1920, 1080, mutable = true)
+                    else -> Decode.asset(assets, key, 1920, 1080, mutable = true)
+                }
                 if (!web) calm(picture)
                 frost = Frost.make(picture)
                 if (web) shade(picture) else floor(picture)
-                if (!web) front = foreground(picture, key)
+                if (!web && !added) front = foreground(picture, key)
                 picture.prepareToDraw()
                 picture
             }.getOrNull()
@@ -142,22 +152,11 @@ class Scenery(private val lower: ImageView, private val upper: ImageView, privat
     }
 
     companion object {
-        /** The wallpapers in this build, by file name. Local builds carry them; a public one may have none. */
-        var NAMES: List<String> = emptyList()
-            private set
         private const val REST_MS = 420L
 
         /** How much of the wallpaper's height the clock can reach, and so the foreground needs. */
         private const val BAND = 0.62f
         private const val CALM_LUMA = 92f
-
-        fun scan(assets: AssetManager) {
-            NAMES = assets.list("wallpapers").orEmpty().filter { it.endsWith(".jpg") }.map { it.removeSuffix(".jpg") }.sorted()
-        }
-
-        fun path(index: Int) = "wallpapers/${NAMES[index]}.jpg"
-
-        fun thumb(index: Int) = "wallpapers/thumbs/${NAMES[index]}.jpg"
 
         /** Dims a bright picture just enough for thin white type, judged where the clock sits. */
         private fun calm(bitmap: Bitmap) {
@@ -214,8 +213,8 @@ class Scenery(private val lower: ImageView, private val upper: ImageView, privat
 }
 
 /**
- * The large clock: six faces drawn into one cached layer, so the big shapes cost nothing between
- * minutes; each frame just draws the texture. They came out of what people actually pin and shot
+ * The large clock: six faces drawn into one cached layer, so the big shapes cost nothing; each
+ * frame just draws the texture, and they are drawn again only when the minute changes. They came out of what people actually pin and shot
  * for TVs: flip tiles, tall lock-screen numerals, a moon dial, a script weekday, a luminous ring.
  *
  * - Glass: tall numerals that catch the light, with the scenery's foreground in front of them.
@@ -277,14 +276,20 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         date = now.format(DATE)
         longDate = "$weekday, $date"
         turning?.cancel()
-        if (!changed || !isShown) {
+        if (!changed || !isShown || face != FLIP) {
             turn = 1f
             invalidate()
+            // Only the cached layer's alpha moves. Redrawing these big shapes on every frame, as a
+            // rolling minute did, held the whole screen at 30 fps for a second each minute.
+            if (changed && isShown) {
+                alpha = 0.7f
+                animate().alpha(1f).setDuration(Motion.ms(600)).setStartDelay(0).setInterpolator(Motion.EASE)
+            }
             return
         }
         turning = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = Motion.ms(if (face == FLIP) 620 else 900)
-            interpolator = if (face == FLIP) Motion.EASE else Motion.SETTLE
+            duration = Motion.ms(620)
+            interpolator = Motion.EASE
             addUpdateListener {
                 turn = it.animatedValue as Float
                 invalidate()
@@ -328,19 +333,6 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         }
     }
 
-    /** The minutes at [x, y], the old ones leaving upwards while the new ones arrive. */
-    private fun minutes(canvas: Canvas, x: Float, y: Float) {
-        val rise = px(40f)
-        val shown = text.alpha
-        if (turn < 1f && oldMinute.isNotEmpty()) {
-            text.alpha = (shown * (1f - turn)).toInt()
-            canvas.drawText(oldMinute, x, y - rise * turn, text)
-        }
-        text.alpha = (shown * turn).toInt()
-        canvas.drawText(minute, x, y + rise * (1f - turn), text)
-        text.alpha = shown
-    }
-
     private fun glass(canvas: Canvas) {
         val center = width / 2f
         caption(longDate, center, px(40f), canvas, center = true)
@@ -357,7 +349,7 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         x += h
         canvas.drawText(":", x, baseline - px(8f), text)
         x += c
-        minutes(canvas, x, baseline)
+        canvas.drawText(minute, x, baseline, text)
         text.shader = null
     }
 
@@ -553,7 +545,7 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         var x = text.measureText(hour) + px(8f)
         canvas.drawText(":", x, baseline - px(12f), text)
         x += text.measureText(":") + px(8f)
-        minutes(canvas, x, baseline)
+        canvas.drawText(minute, x, baseline, text)
         text.alpha = 255
         caption(weekday, px(10f), px(392f), canvas, center = false, size = 168f, face = italic)
         caption(date, px(18f), px(452f), canvas, center = false, size = 34f)
@@ -595,7 +587,7 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         x += h
         canvas.drawText(":", x, baseline - px(6f), text)
         x += c
-        minutes(canvas, x, baseline)
+        canvas.drawText(minute, x, baseline, text)
         caption(date, cx, cy + px(104f), canvas, center = true, size = 28f)
     }
 
@@ -607,7 +599,7 @@ class ClockFace(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         var x = text.measureText(hour) + px(16f)
         canvas.drawText(":", x, baseline - px(14f), text)
         x += text.measureText(":") + px(16f)
-        minutes(canvas, x, baseline)
+        canvas.drawText(minute, x, baseline, text)
         caption(longDate, px(8f), px(386f), canvas, center = false)
     }
 

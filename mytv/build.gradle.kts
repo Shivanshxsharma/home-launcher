@@ -46,8 +46,8 @@ android {
         applicationId = "com.shivansh.mytv"
         minSdk = 28
         targetSdk = 37
-        versionCode = 4
-        versionName = "0.4.0"
+        versionCode = 5
+        versionName = "0.5.0"
         // Same rule as the Home launcher: a public build (-PpublicBuild) carries no key, and users
         // connect their own from their phone; developer builds may bake one in.
         val bakedKey = if (providers.gradleProperty("publicBuild").isPresent) "" else localProps.getProperty("tmdb.apiKey", "")

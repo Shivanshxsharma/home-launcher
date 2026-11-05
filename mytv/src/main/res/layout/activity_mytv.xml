@@ -237,6 +237,18 @@
                 android:shadowRadius="6"
                 android:textSize="13dp" />
 
+            <TextView
+                android:id="@+id/rack_apps_hint"
+                style="@style/Heading"
+                android:layout_gravity="end"
+                android:layout_marginEnd="48dp"
+                android:alpha="0.8"
+                android:fontFamily="@font/geist_medium"
+                android:shadowColor="#66000000"
+                android:shadowRadius="6"
+                android:text="@string/all_hint"
+                android:textSize="12dp" />
+
             <FrameLayout
                 android:id="@+id/dock"
                 android:layout_width="match_parent"
@@ -255,34 +267,49 @@
         android:alpha="0"
         android:visibility="invisible" />
 
-    <!-- ===== Favorites: every saved film and show ===== -->
+    <!-- ===== Recent: the apps opened lately, in the same place as Home's first row ===== -->
 
     <FrameLayout
-        android:id="@+id/page_favs"
-        android:forceHasOverlappingRendering="false"
+        android:id="@+id/page_recent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:alpha="0"
+        android:forceHasOverlappingRendering="false"
         android:visibility="invisible">
 
-        <TextView
-            style="@style/Heading"
-            android:layout_marginStart="48dp"
-            android:layout_marginTop="80dp"
-            android:text="@string/favs_title"
-            android:textSize="20dp" />
-
-        <TextView
-            style="@style/Note"
-            android:layout_marginStart="48dp"
-            android:layout_marginTop="108dp"
-            android:text="@string/favs_hint" />
-
         <FrameLayout
-            android:id="@+id/favs_grid"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="122dp" />
+            android:layout_height="136dp"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:id="@+id/recent_label"
+                style="@style/Heading"
+                android:layout_marginStart="48dp"
+                android:shadowColor="#66000000"
+                android:shadowRadius="6"
+                android:textSize="13dp" />
+
+            <FrameLayout
+                android:id="@+id/recent_dock"
+                android:layout_width="match_parent"
+                android:layout_height="108dp"
+                android:layout_gravity="bottom"
+                android:layout_marginStart="30dp"
+                android:layout_marginEnd="30dp" />
+
+            <TextView
+                android:id="@+id/recent_empty"
+                style="@style/Note"
+                android:layout_width="match_parent"
+                android:layout_height="108dp"
+                android:layout_gravity="bottom"
+                android:gravity="center"
+                android:text="@string/recent_empty"
+                android:textColor="@color/ink"
+                android:textSize="14dp" />
+        </FrameLayout>
     </FrameLayout>
 
     <!-- ===== Search: films and shows ===== -->
@@ -443,21 +470,21 @@
     <FrameLayout
         android:id="@+id/bar_frame"
         android:layout_width="wrap_content"
-        android:layout_height="40dp"
+        android:layout_height="34dp"
         android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="22dp">
+        android:layout_marginTop="25dp">
 
         <com.shivansh.mytv.ui.Pill
             android:id="@+id/bar_pill"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="4dp" />
+            android:layout_margin="3dp" />
 
         <LinearLayout
             android:id="@+id/tabs"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_margin="4dp"
+            android:layout_margin="3dp"
             android:orientation="horizontal">
 
             <TextView
@@ -467,6 +494,10 @@
             <TextView
                 style="@style/Tab"
                 android:text="@string/tab_favorites" />
+
+            <TextView
+                style="@style/Tab"
+                android:text="@string/tab_recent" />
 
             <TextView
                 style="@style/Tab"
@@ -510,7 +541,7 @@
         <LinearLayout
             android:id="@+id/corner_network"
             android:layout_width="wrap_content"
-            android:layout_height="30dp"
+            android:layout_height="28dp"
             android:contentDescription="@string/corner_network"
             android:gravity="center_vertical"
             android:orientation="horizontal"
@@ -539,8 +570,8 @@
 
         <FrameLayout
             android:id="@+id/corner_settings"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:layout_marginStart="8dp"
             android:contentDescription="@string/corner_settings">
 

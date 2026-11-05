@@ -1,6 +1,7 @@
 package com.shivansh.mytv
 
 import android.app.Activity
+import android.app.ActivityManager
 import android.content.ActivityNotFoundException
 import android.content.ComponentCallbacks2
 import android.content.Intent
@@ -51,6 +52,8 @@ import com.shivansh.mytv.ui.RoundOutline
 import com.shivansh.mytv.ui.Scenery
 import com.shivansh.mytv.ui.Tiles
 import com.shivansh.mytv.ui.Ui
+import com.shivansh.mytv.ui.Wall
+import com.shivansh.mytv.ui.Walls
 import com.shivansh.mytv.ui.Worker
 import com.shivansh.mytv.ui.fadeTo
 import java.time.LocalDateTime
@@ -58,13 +61,13 @@ import java.security.SecureRandom
 
 /**
  * MY TV. A floating bar of tabs over Home, laid out like Apple TV: a large clock on the wallpaper
- * above one row of your favorite apps, and an All tile that reveals the rest below that row. One
- * press down brings your favorite films and shows, with the focused one's backdrop filling the
- * screen. Favorites holds them all, Search finds films and shows on TMDB, and Style sets the
- * wallpaper and clock, from the remote or from a page on your phone.
+ * above one row of your favorite apps, and one press down reveals all the others below it.
+ * Favorites fills the screen with the focused film or show's backdrop over a rack of posters.
+ * Recent lists the apps you opened, and the remote's Apps button goes straight there. Search finds
+ * films and shows on TMDB, and Style sets the wallpaper and clock, from the remote or a phone.
  */
 class MyTvActivity : Activity(), Link.Listener {
-    private enum class Page { HOME, FAVORITES, SEARCH, STYLE }
+    private enum class Page { HOME, FAVORITES, RECENT, SEARCH, STYLE }
 
     /** Where the remote is. MAIN and SIDE are a page's first and second things. */
     private enum class Zone { BAR, CORNER, FAVS, APPS, ALL, MAIN, SIDE, MOVE }
@@ -86,7 +89,7 @@ class MyTvActivity : Activity(), Link.Listener {
     private lateinit var favRack: Tiles
     private lateinit var appRack: Tiles
     private lateinit var allRack: Tiles
-    private lateinit var grid: Tiles
+    private lateinit var recentRack: Tiles
     private lateinit var results: Tiles
     private lateinit var walls: Tiles
     private lateinit var faces: Tiles
@@ -100,6 +103,9 @@ class MyTvActivity : Activity(), Link.Listener {
     private lateinit var appsLift: View
     private lateinit var dock: View
     private lateinit var allSheet: View
+    private lateinit var appsHint: View
+    private lateinit var recentLabel: TextView
+    private lateinit var recentEmpty: View
     private lateinit var depthGroup: View
     private lateinit var phoneCard: View
     private lateinit var phoneCode: ImageView
@@ -125,8 +131,7 @@ class MyTvActivity : Activity(), Link.Listener {
     private var page = Page.HOME
     private var zone = Zone.APPS
 
-    /** Home's films, below the apps. */
-    private var favsShowing = false
+    /** The Favorites tab's backdrop is up, so the wallpaper must stay out of the way. */
     private var heroShowing = false
 
     /** The rest of the apps, revealed below the first row. */
@@ -144,7 +149,7 @@ class MyTvActivity : Activity(), Link.Listener {
         holding = false
         openOptions()
     }
-    private val hideScene = Runnable { if (page == Page.FAVORITES || page == Page.SEARCH) scene.visibility = View.INVISIBLE }
+    private val hideScene = Runnable { if (page == Page.SEARCH) scene.visibility = View.INVISIBLE }
     private val hideNote = Runnable { note.fadeTo(0f, 300) }
     private val rotate = Runnable { nextWallpaper() }
     private val tick = Runnable { paintClock() }
@@ -174,12 +179,15 @@ class MyTvActivity : Activity(), Link.Listener {
         appsLift = findViewById(R.id.apps_lift)
         dock = findViewById(R.id.dock)
         allSheet = findViewById(R.id.all_sheet)
+        appsHint = findViewById(R.id.rack_apps_hint)
+        recentLabel = findViewById(R.id.recent_label)
+        recentEmpty = findViewById(R.id.recent_empty)
         depthGroup = findViewById(R.id.depth_group)
         phoneCard = findViewById(R.id.phone_card)
         phoneCode = findViewById(R.id.phone_code)
         phoneLink = findViewById(R.id.phone_link)
         pages = mapOf(
-            Page.FAVORITES to findViewById<View>(R.id.page_favs),
+            Page.RECENT to findViewById<View>(R.id.page_recent),
             Page.SEARCH to findViewById<View>(R.id.page_search),
             Page.STYLE to findViewById<View>(R.id.page_style),
         )
@@ -189,7 +197,7 @@ class MyTvActivity : Activity(), Link.Listener {
         networkIcon = findViewById(R.id.corner_network_icon)
         networkLabel = findViewById(R.id.corner_network_label)
 
-        Scenery.scan(assets)
+        Walls.init(this, prefs)
         scenery = Scenery(findViewById(R.id.wall_lower), findViewById(R.id.wall_upper), findViewById(R.id.depth), assets)
         hero = Hero(heroView, posters)
         link = Link(QrCard(findViewById(R.id.qr)), hero, tmdb, apiKey, account, this)
@@ -199,7 +207,7 @@ class MyTvActivity : Activity(), Link.Listener {
         favRack = Tiles(favRackView as FrameLayout, Ui.px(RACK_W), Ui.px(RACK_H), Ui.px(RACK_H), Tiles.ROW, top = Ui.px(40))
         appRack = Tiles(findViewById(R.id.dock), Ui.px(APP_W), Ui.px(APP_H), Ui.px(APP_H), Tiles.ROW, left = Ui.px(36), top = Ui.px(36), lift = 1.14f)
         allRack = Tiles(findViewById(R.id.all_grid), Ui.px(APP_W), Ui.px(APP_H), Ui.px(APP_H + LABEL_H), ALL_COLS, left = Ui.px(36), top = Ui.px(16), lift = 1.14f)
-        grid = Tiles(findViewById(R.id.favs_grid), Ui.px(POSTER_W), Ui.px(POSTER_H), Ui.px(POSTER_H + LABEL_H), GRID_COLS, labelRest = 0.7f)
+        recentRack = Tiles(findViewById(R.id.recent_dock), Ui.px(APP_W), Ui.px(APP_H), Ui.px(APP_H), Tiles.ROW, left = Ui.px(36), top = Ui.px(36), lift = 1.14f)
         results = Tiles(findViewById(R.id.search_results), Ui.px(RESULT_W), Ui.px(RESULT_H), Ui.px(RESULT_H + LABEL_H), RESULT_COLS, labelRest = 0.7f, left = Ui.px(40))
         walls = Tiles(findViewById(R.id.style_walls), Ui.px(WALL_W), Ui.px(WALL_H), Ui.px(WALL_H), Tiles.ROW, left = Ui.px(36), top = Ui.px(16))
         faces = Tiles(findViewById(R.id.style_faces), Ui.px(WALL_W), Ui.px(FACE_H), Ui.px(FACE_H), Tiles.ROW, left = Ui.px(36), top = Ui.px(16))
@@ -210,11 +218,15 @@ class MyTvActivity : Activity(), Link.Listener {
         clockFace.setFace(prefs.getInt(FACE, 0).coerceIn(0, ClockFace.COUNT - 1))
         fillStyle()
         watchNetwork()
-        remote = Remote(assets, phoneSecret(), faceNames(), { wallIndex() to prefs.getInt(FACE, 0) }, ::phoneWallpaper, ::phoneFace)
+        remote = Remote(
+            phoneSecret(), faceNames(), java.io.File(cacheDir, "upload"),
+            { currentWall()?.id to prefs.getInt(FACE, 0) }, ::phoneWallpaper, ::phoneFace, ::wallAdded, ::wallsChanged,
+        )
         appRack.lit = zone == Zone.APPS
         paintScreen(animate = false)
         loadApps()
         loadFavs(offline = true)
+        if (intent?.action == ACTION_SHOW_RECENT) openRecent()
     }
 
     /** Frosted panels: the bar, the corner, the dock, the Style sheet, the note and the page behind lists. */
@@ -227,13 +239,16 @@ class MyTvActivity : Activity(), Link.Listener {
         frost(R.id.corner_network, Ui.px(32f), 0x33101218, selectable = true)
         frost(R.id.corner_settings, Ui.px(32f), 0x33101218, selectable = true)
         frost(R.id.dock, Ui.px(48f), 0x26101218)
+        frost(R.id.recent_dock, Ui.px(48f), 0x26101218)
         frost(R.id.all_sheet, Ui.px(48f), 0x4D101218)
         frost(R.id.style_sheet, Ui.px(48f), 0x4D101218)
         frost(R.id.phone_card, Ui.px(48f), 0x73101218)
         frost(R.id.note, Ui.px(40f), 0x66101218)
         frost(R.id.page_glass, 0f, 0x8C0B0D12.toInt(), edge = false)
-        dock.outlineProvider = RoundOutline(Ui.px(48f))
-        dock.clipToOutline = true
+        for (view in arrayOf(dock, findViewById(R.id.recent_dock))) {
+            view.outlineProvider = RoundOutline(Ui.px(48f))
+            view.clipToOutline = true
+        }
     }
 
     override fun onResume() {
@@ -241,6 +256,7 @@ class MyTvActivity : Activity(), Link.Listener {
         resumed = true
         paintClock()
         loadApps()
+        fillRecent()
         val now = SystemClock.uptimeMillis()
         if (now - lastRefresh > REFRESH_MS) {
             lastRefresh = now
@@ -275,10 +291,11 @@ class MyTvActivity : Activity(), Link.Listener {
         if (intent.hasCategory(Intent.CATEGORY_HOME)) {
             endMove()
             corner.leave()
-            favsShowing = false
             allOpen = false
             showPage(Page.HOME)
             setZone(Zone.APPS)
+        } else if (intent.action == ACTION_SHOW_RECENT) {
+            openRecent()
         }
     }
 
@@ -348,8 +365,8 @@ class MyTvActivity : Activity(), Link.Listener {
         when (zone) {
             Zone.BAR -> enterPage()
             Zone.CORNER -> openCorner()
-            Zone.APPS -> setAll(!allOpen)
             Zone.MAIN -> when (page) {
+                Page.RECENT -> clearRecents()
                 Page.SEARCH -> keys.press()
                 Page.STYLE -> {
                     walls.squish()
@@ -383,24 +400,15 @@ class MyTvActivity : Activity(), Link.Listener {
             Zone.APPS -> when {
                 dCol != 0 -> if (appRack.move(0, dCol)) paintAppLabel() else appRack.nudge(0, dCol)
                 dRow < 0 -> setZone(Zone.BAR)
-                dRow > 0 -> when {
-                    allOpen -> if (allRack.size > 0) setZone(Zone.ALL) else appRack.nudge(dRow, 0)
-                    else -> {
-                        favsShowing = true
-                        setZone(Zone.FAVS)
-                    }
-                }
+                dRow > 0 -> if (allRack.size > 0) setAll(true) else appRack.nudge(dRow, 0)
             }
             Zone.FAVS -> when {
                 dCol != 0 -> if (favRack.move(0, dCol)) paintFocus() else favRack.nudge(0, dCol)
-                dRow < 0 -> {
-                    favsShowing = false
-                    setZone(Zone.APPS)
-                }
+                dRow < 0 -> setZone(Zone.BAR)
                 dRow > 0 -> favRack.nudge(dRow, 0)
             }
             Zone.ALL -> if (!allRack.move(dRow, dCol)) {
-                if (dRow < 0) setZone(Zone.APPS) else allRack.nudge(dRow, dCol)
+                if (dRow < 0) setAll(false) else allRack.nudge(dRow, dCol)
             }
             Zone.MOVE -> if (dCol != 0) {
                 val from = appRack.focused
@@ -411,7 +419,11 @@ class MyTvActivity : Activity(), Link.Listener {
                 }
             }
             Zone.MAIN -> when (page) {
-                Page.FAVORITES -> if (!grid.move(dRow, dCol) && dRow < 0) setZone(Zone.BAR)
+                Page.RECENT -> when {
+                    dCol != 0 -> if (recentRack.move(0, dCol)) paintRecentLabel() else recentRack.nudge(0, dCol)
+                    dRow < 0 -> setZone(Zone.BAR)
+                    dRow > 0 -> recentRack.nudge(dRow, 0)
+                }
                 Page.SEARCH -> if (!keys.move(dRow, dCol)) {
                     if (dRow < 0) setZone(Zone.BAR)
                     if (dCol > 0 && results.size > 0) setZone(Zone.SIDE)
@@ -444,12 +456,7 @@ class MyTvActivity : Activity(), Link.Listener {
             Zone.MOVE -> endMove()
             Zone.CORNER -> leaveCorner()
             Zone.ALL -> setAll(false)
-            Zone.APPS -> if (allOpen) setAll(false) else setZone(Zone.BAR)
-            Zone.FAVS -> {
-                favsShowing = false
-                setZone(Zone.APPS)
-            }
-            Zone.MAIN -> setZone(Zone.BAR)
+            Zone.APPS, Zone.FAVS, Zone.MAIN -> setZone(Zone.BAR)
             Zone.SIDE -> setZone(if (page == Page.SEARCH) Zone.MAIN else Zone.BAR)
             Zone.BAR -> {
                 if (page == Page.HOME) return isDefaultHome()
@@ -464,18 +471,20 @@ class MyTvActivity : Activity(), Link.Listener {
         favRack.lit = next == Zone.FAVS
         appRack.lit = next == Zone.APPS || next == Zone.MOVE
         allRack.lit = next == Zone.ALL
-        grid.lit = page == Page.FAVORITES && next == Zone.MAIN
+        recentRack.lit = page == Page.RECENT && next == Zone.MAIN
         keys.setLit(page == Page.SEARCH && next == Zone.MAIN)
         results.lit = page == Page.SEARCH && next == Zone.SIDE
         walls.lit = page == Page.STYLE && next == Zone.MAIN
         faces.lit = page == Page.STYLE && next == Zone.SIDE
+        paintRecentLabel()
         paintScreen(animate = true)
     }
 
     private fun enterPage() {
         when (page) {
-            Page.HOME -> setZone(if (favsShowing) Zone.FAVS else Zone.APPS)
-            Page.FAVORITES -> setZone(if (grid.size > 0) Zone.MAIN else Zone.BAR)
+            Page.HOME -> setZone(Zone.APPS)
+            Page.FAVORITES -> setZone(if (favs.isNotEmpty() && !link.needed) Zone.FAVS else Zone.BAR)
+            Page.RECENT -> setZone(if (recentRack.size > 0) Zone.MAIN else Zone.BAR)
             else -> setZone(Zone.MAIN)
         }
     }
@@ -504,7 +513,7 @@ class MyTvActivity : Activity(), Link.Listener {
         page = next
         main.removeCallbacks(hideScene)
         scene.visibility = View.VISIBLE
-        val solid = next == Page.FAVORITES || next == Page.SEARCH
+        val solid = next == Page.SEARCH
         pageGlass.fadeTo(if (solid) 1f else 0f, 260)
         if (solid) main.postDelayed(hideScene, 320)
         pages[next]?.let {
@@ -519,9 +528,9 @@ class MyTvActivity : Activity(), Link.Listener {
     private fun paintScreen(animate: Boolean) {
         bar.set(page.ordinal, zone == Zone.BAR)
         val home = page == Page.HOME
-        val wantHero = home && favsShowing
-        val wantApps = home && !favsShowing
-        val wantClock = (wantApps && !allOpen) || page == Page.STYLE
+        val wantHero = page == Page.FAVORITES
+        val wantApps = home
+        val wantClock = (home && !allOpen) || page == Page.STYLE || page == Page.RECENT
         heroShowing = wantHero
         val travel = Ui.px(FLOOR_PX)
         floor(favRackView, wantHero, travel, animate)
@@ -543,7 +552,7 @@ class MyTvActivity : Activity(), Link.Listener {
             paintFocus()
         } else {
             link.stop()
-            scenery.wallpaper(wallIndex(), fadeMs = 700)
+            scenery.wallpaper(currentWall(), fadeMs = 700)
         }
     }
 
@@ -560,10 +569,6 @@ class MyTvActivity : Activity(), Link.Listener {
     }
 
     private fun setAll(open: Boolean) {
-        if (open && allRack.size == 0) {
-            showNote(getString(R.string.all_none))
-            return
-        }
         allOpen = open
         paintAppLabel()
         setZone(if (open) Zone.ALL else Zone.APPS)
@@ -592,7 +597,7 @@ class MyTvActivity : Activity(), Link.Listener {
         val show = favs.getOrNull(favRack.focused)
         if (show == null) {
             hero.show(getString(R.string.tab_favorites), getString(R.string.favs_empty_title), "", getString(R.string.favs_empty_line), null)
-            scenery.wallpaper(wallIndex(), fadeMs = 700)
+            scenery.wallpaper(currentWall(), fadeMs = 700)
             return
         }
         hero.title(show, Hero.kickerFor(show, getString(R.string.kicker_film), getString(R.string.kicker_series)))
@@ -601,10 +606,8 @@ class MyTvActivity : Activity(), Link.Listener {
 
     private fun paintAppLabel() {
         val label = findViewById<TextView>(R.id.rack_apps_label)
-        label.text = when {
-            allOpen -> ""
-            else -> rowApps().getOrNull(appRack.focused)?.label ?: getString(R.string.all_apps)
-        }
+        label.text = if (allOpen) "" else rowApps().getOrNull(appRack.focused)?.label.orEmpty()
+        appsHint.visibility = if (allOpen || allRack.size == 0) View.INVISIBLE else View.VISIBLE
     }
 
     private fun paintClock() {
@@ -641,8 +644,7 @@ class MyTvActivity : Activity(), Link.Listener {
 
     private fun fillFavs() {
         favRack.set(favs.map { poster(it, RACK_W, RACK_H, label = false) }, keep = true)
-        grid.set(favs.map { poster(it, POSTER_W, POSTER_H, label = true) }, keep = true)
-        if (page == Page.HOME && favsShowing) paintFocus()
+        if (page == Page.FAVORITES) paintFocus()
     }
 
     private fun poster(show: Show, width: Int, height: Int, label: Boolean) = Cell(this, Ui.px(width), Ui.px(height)).apply {
@@ -652,7 +654,6 @@ class MyTvActivity : Activity(), Link.Listener {
 
     private fun focusedShow(): Show? = when {
         zone == Zone.FAVS -> favs.getOrNull(favRack.focused)
-        page == Page.FAVORITES && zone == Zone.MAIN -> favs.getOrNull(grid.focused)
         page == Page.SEARCH && zone == Zone.SIDE -> found.getOrNull(results.focused)
         else -> null
     }
@@ -661,7 +662,7 @@ class MyTvActivity : Activity(), Link.Listener {
         zone == Zone.FAVS -> favRack
         zone == Zone.APPS -> appRack
         zone == Zone.ALL -> allRack
-        page == Page.FAVORITES -> grid
+        page == Page.RECENT -> recentRack
         page == Page.SEARCH -> results
         else -> null
     }
@@ -685,22 +686,21 @@ class MyTvActivity : Activity(), Link.Listener {
         val app = rich.provider?.let { provider -> all.firstOrNull { provider.owns(it.component.packageName) } }
         when {
             app != null -> launch(app)
-            rich.trailers.isNotEmpty() -> YouTube.play(this, rich.trailers.first())
+            rich.trailers.isNotEmpty() -> if (YouTube.play(this, rich.trailers.first())) noteYouTube()
             else -> showNote(rich.service.ifEmpty { getString(R.string.not_streaming) })
         }
     }
 
     private fun playTrailer(show: Show) = withDetails(show) { rich ->
         val key = rich.trailers.firstOrNull()
-        if (key == null || !YouTube.play(this, key)) showNote(getString(R.string.no_trailer))
+        if (key != null && YouTube.play(this, key)) noteYouTube() else showNote(getString(R.string.no_trailer))
     }
 
     private fun toggleFavorite(show: Show) {
         if (!account.signedIn) {
             showNote(getString(R.string.sign_in_first))
-            favsShowing = true
-            showPage(Page.HOME)
-            setZone(Zone.FAVS)
+            showPage(Page.FAVORITES)
+            setZone(Zone.BAR)
             return
         }
         val on = !isFavorite(show)
@@ -723,11 +723,13 @@ class MyTvActivity : Activity(), Link.Listener {
         } else {
             val app = focusedApp() ?: return
             items += Menu.Item(getString(R.string.menu_open)) { launch(app) }
-            if (zone == Zone.ALL) {
-                items += Menu.Item(getString(R.string.menu_row_add)) { saveRow(rowApps() + app) }
-            } else {
-                items += Menu.Item(getString(R.string.menu_move)) { setZone(Zone.MOVE) }
-                items += Menu.Item(getString(R.string.menu_row_remove)) { saveRow(rowApps() - app) }
+            when {
+                page == Page.RECENT -> items += Menu.Item(getString(R.string.menu_recent_remove)) { forgetRecent(app) }
+                zone == Zone.ALL -> items += Menu.Item(getString(R.string.menu_row_add)) { saveRow(rowApps() + app) }
+                else -> {
+                    items += Menu.Item(getString(R.string.menu_move)) { setZone(Zone.MOVE) }
+                    items += Menu.Item(getString(R.string.menu_row_remove)) { saveRow(rowApps() - app) }
+                }
             }
         }
         menu.open(items)
@@ -767,10 +769,11 @@ class MyTvActivity : Activity(), Link.Listener {
     }
 
     private fun fillApps() {
-        appRack.set(rowApps().map(::appCell) + allCell(), keep = true)
+        appRack.set(rowApps().map(::appCell), keep = true)
         allRack.set(restApps().map(::appCell), keep = true)
         fitAll()
         paintAppLabel()
+        fillRecent()
     }
 
     /** The sheet only as tall as its rows, and the first row sitting just above it. */
@@ -787,11 +790,12 @@ class MyTvActivity : Activity(), Link.Listener {
         apps.load(app) { image.setImageBitmap(it) }
     }
 
-    private fun allCell() = Cell(this, Ui.px(APP_W), Ui.px(APP_H)).apply {
+    /** The Recent tab's last tile. */
+    private fun clearCell() = Cell(this, Ui.px(APP_W), Ui.px(APP_H)).apply {
         image.scaleType = ImageView.ScaleType.CENTER
-        image.setImageResource(R.drawable.ic_all)
+        image.setImageResource(R.drawable.ic_clear)
         image.translationY = -Ui.px(14f)
-        words.text = getString(R.string.all_apps)
+        words.text = getString(R.string.recent_clear)
         words.visibility = View.VISIBLE
         words.gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
         words.setPadding(0, 0, 0, Ui.px(16))
@@ -802,7 +806,73 @@ class MyTvActivity : Activity(), Link.Listener {
     private fun focusedApp(): App? = when (zone) {
         Zone.APPS -> rowApps().getOrNull(appRack.focused)
         Zone.ALL -> restApps().getOrNull(allRack.focused)
+        Zone.MAIN -> if (page == Page.RECENT) recentApps().getOrNull(recentRack.focused) else null
         else -> null
+    }
+
+    // ---- Recent ----
+
+    private fun recentKeys() = prefs.getString(RECENT, null)?.split('|').orEmpty().filter { it.isNotEmpty() }
+
+    /**
+     * The apps opened from MY TV, latest first. It keeps its own list because Android doesn't show
+     * one app another's recents, so apps opened some other way aren't on it.
+     */
+    private fun recentApps() = recentKeys().mapNotNull { key -> all.firstOrNull { it.key == key } }
+
+    private fun noteRecent(app: App) {
+        val keys = (listOf(app.key) + recentKeys().filter { it != app.key }).take(RECENT_MAX)
+        prefs.edit().putString(RECENT, keys.joinToString("|")).apply()
+    }
+
+    /** A trailer opened YouTube without going through [launch]. */
+    private fun noteYouTube() {
+        all.firstOrNull { it.component.packageName == YOUTUBE }?.let(::noteRecent)
+    }
+
+    private fun fillRecent() {
+        val list = recentApps()
+        recentRack.set(list.map(::appCell) + (if (list.isEmpty()) emptyList() else listOf(clearCell())), keep = true)
+        recentEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+        paintRecentLabel()
+    }
+
+    private fun paintRecentLabel() {
+        val here = page == Page.RECENT && zone == Zone.MAIN
+        val list = recentApps()
+        recentLabel.text = when {
+            !here || list.isEmpty() -> getString(R.string.tab_recent)
+            else -> list.getOrNull(recentRack.focused)?.label ?: getString(R.string.recent_clear)
+        }
+    }
+
+    private fun forgetRecent(app: App) {
+        prefs.edit().putString(RECENT, recentKeys().filter { it != app.key }.joinToString("|")).apply()
+        fillRecent()
+        if (recentRack.size == 0) setZone(Zone.BAR)
+    }
+
+    /** Empties the list and closes those apps in the background, as swiping them away would. */
+    private fun clearRecents() {
+        val names = recentApps().map { it.component.packageName }.distinct()
+        prefs.edit().remove(RECENT).apply()
+        fillRecent()
+        setZone(Zone.BAR)
+        showNote(getString(R.string.note_recent_cleared))
+        Worker.pool.execute {
+            val manager = getSystemService(ActivityManager::class.java)
+            names.forEach { runCatching { manager.killBackgroundProcesses(it) } }
+        }
+    }
+
+    /** The remote's Apps button, through [AppsKeyService]. */
+    private fun openRecent() {
+        endMove()
+        corner.leave()
+        allOpen = false
+        menu.close()
+        showPage(Page.RECENT)
+        enterPage()
     }
 
     private fun endMove() {
@@ -816,6 +886,7 @@ class MyTvActivity : Activity(), Link.Listener {
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
         try {
             startActivity(intent)
+            noteRecent(app)
         } catch (_: ActivityNotFoundException) {
             loadApps()
         } catch (_: SecurityException) {
@@ -870,13 +941,12 @@ class MyTvActivity : Activity(), Link.Listener {
     // ---- Style ----
 
     private fun fillStyle() {
-        val current = wallIndex()
-        val cells = Scenery.NAMES.indices.map { i ->
+        val current = wallPos()
+        val cells = Walls.all.mapIndexed { i, wall ->
             Cell(this, Ui.px(WALL_W), Ui.px(WALL_H)).apply {
                 mark.visibility = if (i == current) View.VISIBLE else View.GONE
-                val path = Scenery.thumb(i)
                 Worker.pool.execute {
-                    val thumb = runCatching { com.shivansh.mytv.ui.Decode.asset(assets, path, Ui.px(WALL_W), Ui.px(WALL_H)) }.getOrNull()
+                    val thumb = runCatching { Walls.thumbBitmap(wall, Ui.px(WALL_W), Ui.px(WALL_H)) }.getOrNull()
                     if (thumb != null) main.post { image.setImageBitmap(thumb) }
                 }
             }
@@ -893,7 +963,10 @@ class MyTvActivity : Activity(), Link.Listener {
         R.string.face_glass, R.string.face_flip, R.string.face_moon, R.string.face_weekday, R.string.face_halo, R.string.face_serif,
     ).map(::getString)
 
-    private fun wallIndex() = prefs.getInt(WALLPAPER, 0).coerceIn(0, (Scenery.NAMES.size - 1).coerceAtLeast(0))
+    /** Where the chosen wallpaper is in the list; the first if it's been deleted. */
+    private fun wallPos() = Walls.all.indexOfFirst { it.id == prefs.getString(WALLPAPER, null) }.coerceAtLeast(0)
+
+    private fun currentWall(): Wall? = Walls.all.getOrNull(wallPos())
 
     private fun wordsCell(text: String, height: Int, marked: Boolean) = Cell(this, Ui.px(WALL_W), Ui.px(height)).apply {
         words.text = text
@@ -906,7 +979,7 @@ class MyTvActivity : Activity(), Link.Listener {
 
     private fun pickWallpaper() {
         val i = walls.focused
-        if (i >= Scenery.NAMES.size) {
+        if (i >= Walls.all.size) {
             val on = !prefs.getBoolean(ROTATE, false)
             prefs.edit().putBoolean(ROTATE, on).apply()
             walls.cell(i)?.mark?.visibility = if (on) View.VISIBLE else View.GONE
@@ -917,10 +990,11 @@ class MyTvActivity : Activity(), Link.Listener {
     }
 
     private fun setWallpaper(index: Int, fadeMs: Long) {
-        walls.cell(wallIndex())?.mark?.visibility = View.GONE
+        val wall = Walls.all.getOrNull(index) ?: return
+        walls.cell(wallPos())?.mark?.visibility = View.GONE
         walls.cell(index)?.mark?.visibility = View.VISIBLE
-        prefs.edit().putInt(WALLPAPER, index).apply()
-        scenery.wallpaper(index, fadeMs)
+        prefs.edit().putString(WALLPAPER, wall.id).apply()
+        scenery.wallpaper(wall, fadeMs)
     }
 
     private fun pickFace() = setFace(faces.focused)
@@ -967,14 +1041,24 @@ class MyTvActivity : Activity(), Link.Listener {
         phoneCard.fadeTo(0f, 180)
     }
 
-    /** A wallpaper from the phone: shown at once, so leave the films if they're up. */
-    private fun phoneWallpaper(index: Int) {
-        if (index !in Scenery.NAMES.indices) return
-        if (page == Page.HOME && favsShowing) {
-            favsShowing = false
-            setZone(Zone.APPS)
-        }
+    /** A wallpaper from the phone: shown at once, so leave the backdrop if it's up. */
+    private fun phoneWallpaper(id: String) {
+        val index = Walls.all.indexOfFirst { it.id == id }
+        if (index < 0) return
+        if (page == Page.FAVORITES) showPage(Page.HOME)
         setWallpaper(index, FADE_MS)
+    }
+
+    /** A picture came from the phone: it joins the list and goes up on the TV. */
+    private fun wallAdded(wall: Wall) {
+        fillStyle()
+        phoneWallpaper(wall.id)
+    }
+
+    /** Wallpapers were deleted or restored; if the one on screen went, the next takes over. */
+    private fun wallsChanged() {
+        fillStyle()
+        if (!heroShowing) scenery.wallpaper(currentWall(), FADE_MS)
     }
 
     private fun phoneFace(index: Int) {
@@ -988,7 +1072,7 @@ class MyTvActivity : Activity(), Link.Listener {
     }
 
     private fun nextWallpaper() {
-        if (!heroShowing && Scenery.NAMES.isNotEmpty()) setWallpaper((wallIndex() + 1) % Scenery.NAMES.size, ROTATE_FADE_MS)
+        if (!heroShowing && Walls.all.isNotEmpty()) setWallpaper((wallPos() + 1) % Walls.all.size, ROTATE_FADE_MS)
         scheduleRotate()
     }
 
@@ -1037,12 +1121,15 @@ class MyTvActivity : Activity(), Link.Listener {
         /** The first row until it's changed: Android TV's usual streaming apps, if installed. */
         val DEFAULT_ROW = listOf(
             "com.google.android.youtube.tv", "com.google.android.youtube.tvmusic", "com.amazon.amazonvideo.livingroom",
-            "in.startv.hotstar", "app.netmirror.newtv",
+            "in.startv.hotstar", "app.netmirror.newtv", "com.sonyliv",
         )
-        const val ROW_SIZE = 5
+        const val ROW_SIZE = 6
+        const val RECENT_MAX = 12
+        const val YOUTUBE = "com.google.android.youtube.tv"
 
         const val ROW = "app_row"
-        const val WALLPAPER = "wallpaper"
+        const val RECENT = "recent_apps"
+        const val WALLPAPER = "wall_id"
         const val FACE = "clock_face"
         const val ROTATE = "rotate"
         const val PHONE = "phone_code"
@@ -1053,8 +1140,6 @@ class MyTvActivity : Activity(), Link.Listener {
         const val APP_W = 256
         const val APP_H = 144
         const val LABEL_H = 64
-        const val POSTER_W = 200
-        const val POSTER_H = 300
         const val RESULT_W = 184
         const val RESULT_H = 276
         const val WALL_W = 208
@@ -1066,7 +1151,6 @@ class MyTvActivity : Activity(), Link.Listener {
         const val ALL_HEAD = 92
         const val QUICK_MS = 200L
         const val RETURN_MS = 360L
-        const val GRID_COLS = 7
         const val RESULT_COLS = 5
         const val MAX_QUERY = 30
         const val HOLD_MS = 500L
