@@ -46,8 +46,8 @@ android {
         applicationId = "com.shivansh.mytv"
         minSdk = 28
         targetSdk = 37
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 4
+        versionName = "0.4.0"
         // Same rule as the Home launcher: a public build (-PpublicBuild) carries no key, and users
         // connect their own from their phone; developer builds may bake one in.
         val bakedKey = if (providers.gradleProperty("publicBuild").isPresent) "" else localProps.getProperty("tmdb.apiKey", "")
@@ -77,6 +77,9 @@ android {
             signingConfig = signingConfigs.getByName("tv")
         }
     }
+
+    // Wallpapers that can't be published live outside git; only local builds pick them up.
+    sourceSets["main"].assets.srcDir("personal-assets")
 
     androidResources {
         // Wallpapers are already JPEGs; storing them as they are spares a pass on every read.

@@ -25,7 +25,7 @@ class Keys(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val gap = Ui.px(8f)
     private val radius = Ui.px(16f)
     private val font = context.resources.getFont(R.font.geist_medium)
-    private val keyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Palette.CARD }
+    private val keyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x1FFFFFFF }
     private val litPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         typeface = font
@@ -115,7 +115,7 @@ class Keys(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             bounds(key, rect)
             canvas.drawRoundRect(rect, radius, radius, keyPaint)
         }
-        litPaint.color = if (lit) Palette.INK else 0xFF3A3F49.toInt()
+        litPaint.color = if (lit) Palette.INK else 0x47FFFFFF
         canvas.drawRoundRect(highlight, radius, radius, litPaint)
         val focused = current
         for (key in keys) {

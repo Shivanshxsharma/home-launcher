@@ -21,11 +21,20 @@
     <string name="style_clock">Clock</string>
     <string name="style_rotate">Change by itself</string>
 
-    <string name="face_contour">Contour</string>
-    <string name="face_long">Long</string>
-    <string name="face_shapes">Shapes</string>
-    <string name="face_dial">Dial</string>
+    <string name="face_glass">Glass</string>
+    <string name="face_flip">Flip</string>
+    <string name="face_moon">Moon</string>
+    <string name="face_weekday">Weekday</string>
+    <string name="face_halo">Halo</string>
     <string name="face_serif">Serif</string>
+    <string name="style_phone">From phone</string>
+    <string name="phone_title">Change it from your phone</string>
+    <string name="phone_line">Scan with your phone\'s camera, on the same Wi-Fi. Keep the page as a bookmark.</string>
+    <string name="phone_offline">The TV isn\'t on a network</string>
+    <string name="all_apps">All apps</string>
+    <string name="all_none">Every app is in the first row</string>
+    <string name="menu_row_add">Add to first row</string>
+    <string name="menu_row_remove">Remove from first row</string>
 
     <string name="menu_open">Open</string>
     <string name="menu_trailer">Play trailer</string>

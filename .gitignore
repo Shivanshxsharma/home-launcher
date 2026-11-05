@@ -9,3 +9,6 @@ captures/
 
 # Release APKs copied out of build/ for installing by hand.
 dist/
+
+# Wallpapers that are not ours to publish: only local builds for your own box use them.
+mytv/personal-assets/

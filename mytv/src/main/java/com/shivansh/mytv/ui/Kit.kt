@@ -40,14 +40,14 @@ object Palette {
 
 /** A soft spring: rises quickly, passes the mark by a few percent, and settles. */
 class Spring : TimeInterpolator {
-    override fun getInterpolation(t: Float): Float = if (t >= 1f) 1f else 1f - exp(-5.5f * t) * cos(8f * t)
+    override fun getInterpolation(t: Float): Float = if (t >= 1f) 1f else 1f - exp(-6f * t) * cos(7f * t)
 }
 
 object Motion {
     val LIFT = Spring()
 
     /** Rows sliding, pages changing. */
-    val SETTLE = PathInterpolator(0.22f, 0.9f, 0.2f, 1f)
+    val SETTLE = PathInterpolator(0.3f, 0.7f, 0.1f, 1f)
     val EASE = PathInterpolator(0.25f, 0.1f, 0.25f, 1f)
 
     /**

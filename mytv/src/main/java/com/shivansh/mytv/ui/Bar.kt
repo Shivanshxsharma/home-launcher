@@ -90,11 +90,11 @@ class Bar(private val tabs: LinearLayout, private val pill: Pill) {
     private fun paint(animate: Boolean) {
         val tab = views[index]
         if (tab.width > 0) pill.place(tabs.left.toFloat() - pill.left + tab.left, tabs.left.toFloat() - pill.left + tab.right, animate)
-        pill.color(if (focused) Palette.INK else 0xFF343843.toInt())
+        pill.color(if (focused) Palette.INK else 0x33FFFFFF)
         views.forEachIndexed { i, view ->
             val on = i == index
             view.setTextColor(if (on && focused) Palette.DARK else Palette.INK)
-            view.alpha = if (on) 1f else 0.66f
+            view.alpha = if (on) 1f else 0.72f
         }
     }
 }
