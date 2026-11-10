@@ -15,6 +15,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
+import android.speech.RecognizerIntent
 import android.text.format.DateFormat
 import android.util.TypedValue
 import android.view.KeyEvent
@@ -40,6 +41,7 @@ import com.shivansh.mytv.ui.ImageFiles
 import com.shivansh.mytv.ui.Keys
 import com.shivansh.mytv.ui.Link
 import com.shivansh.mytv.ui.Menu
+import com.shivansh.mytv.ui.Mic
 import com.shivansh.mytv.ui.Motion
 import com.shivansh.mytv.ui.Palette
 import com.shivansh.mytv.ui.Pill
@@ -70,7 +72,7 @@ class MyTvActivity : Activity(), Link.Listener {
     private enum class Page { HOME, FAVORITES, SEARCH, STYLE }
 
     /** Where the remote is. MAIN and SIDE are a page's first and second things. */
-    private enum class Zone { BAR, CORNER, FAVS, APPS, ALL, MAIN, SIDE, MOVE }
+    private enum class Zone { BAR, CORNER, FAVS, APPS, ALL, MAIN, SIDE, MOVE, VOICE }
 
     private lateinit var prefs: SharedPreferences
     private lateinit var apiKey: ApiKey
@@ -116,6 +118,7 @@ class MyTvActivity : Activity(), Link.Listener {
     private lateinit var scene: View
     private lateinit var pageGlass: View
     private lateinit var searchQuery: TextView
+    private lateinit var voice: Mic
     private lateinit var searchNone: TextView
     private lateinit var note: TextView
     private lateinit var networkIcon: ImageView
@@ -126,6 +129,9 @@ class MyTvActivity : Activity(), Link.Listener {
     private var favs: List<Show> = emptyList()
     private var found: List<Show> = emptyList()
     private var query = ""
+
+    /** The last search was spoken, so its results take focus as they arrive. */
+    private var spoken = false
     private var searchGeneration = 0
     private var lastRefresh = 0L
 
@@ -196,6 +202,7 @@ class MyTvActivity : Activity(), Link.Listener {
             Page.STYLE to findViewById<View>(R.id.page_style),
         )
         searchQuery = findViewById(R.id.search_query)
+        voice = findViewById(R.id.voice)
         searchNone = findViewById(R.id.search_none)
         note = findViewById(R.id.note)
         networkIcon = findViewById(R.id.corner_network_icon)
@@ -406,6 +413,7 @@ class MyTvActivity : Activity(), Link.Listener {
                 }
                 else -> Unit
             }
+            Zone.VOICE -> listen()
             Zone.SIDE -> if (page == Page.STYLE) {
                 faces.squish()
                 if (faces.focused >= ClockFace.COUNT) togglePhone() else pickFace()
@@ -452,7 +460,7 @@ class MyTvActivity : Activity(), Link.Listener {
             }
             Zone.MAIN -> when (page) {
                 Page.SEARCH -> if (!keys.move(dRow, dCol)) {
-                    if (dRow < 0) setZone(Zone.BAR)
+                    if (dRow < 0) setZone(Zone.VOICE)
                     if (dCol > 0 && results.size > 0) setZone(Zone.SIDE)
                 }
                 Page.STYLE -> when {
@@ -461,6 +469,11 @@ class MyTvActivity : Activity(), Link.Listener {
                     dRow < 0 -> setZone(Zone.BAR)
                 }
                 else -> Unit
+            }
+            Zone.VOICE -> when {
+                dRow < 0 -> setZone(Zone.BAR)
+                dRow > 0 -> setZone(Zone.MAIN)
+                dCol > 0 && results.size > 0 -> setZone(Zone.SIDE)
             }
             Zone.SIDE -> when (page) {
                 Page.SEARCH -> if (!results.move(dRow, dCol) && (dCol < 0 || dRow < 0)) setZone(Zone.MAIN)
@@ -483,7 +496,7 @@ class MyTvActivity : Activity(), Link.Listener {
             Zone.MOVE -> endMove()
             Zone.CORNER -> leaveCorner()
             Zone.ALL -> setAll(false)
-            Zone.APPS, Zone.FAVS, Zone.MAIN -> setZone(Zone.BAR)
+            Zone.APPS, Zone.FAVS, Zone.MAIN, Zone.VOICE -> setZone(Zone.BAR)
             Zone.SIDE -> setZone(if (page == Page.SEARCH) Zone.MAIN else Zone.BAR)
             Zone.BAR -> {
                 if (page == Page.HOME) return isDefaultHome()
@@ -499,6 +512,7 @@ class MyTvActivity : Activity(), Link.Listener {
         appRack.lit = next == Zone.APPS || next == Zone.MOVE
         allRack.lit = next == Zone.ALL
         keys.setLit(page == Page.SEARCH && next == Zone.MAIN)
+        voice.setLit(page == Page.SEARCH && next == Zone.VOICE)
         results.lit = page == Page.SEARCH && next == Zone.SIDE
         walls.lit = page == Page.STYLE && next == Zone.MAIN
         faces.lit = page == Page.STYLE && next == Zone.SIDE
@@ -855,7 +869,6 @@ class MyTvActivity : Activity(), Link.Listener {
         menu.close()
         val list = recentApps()
         returnTo = if (away) list.firstOrNull() else null
-        forceStop.allowOffer()
         switcher.open(list)
     }
 
@@ -895,8 +908,12 @@ class MyTvActivity : Activity(), Link.Listener {
         stopApps(names)
     }
 
-    /** The ordinary kill at once, then a real force stop, which also ends apps that kill can't. */
+    /**
+     * The ordinary kill at once, then a real force stop, which also ends apps that kill can't. Either
+     * way the app starts afresh next time, as one swiped away on a phone does.
+     */
     private fun stopApps(names: List<String>) {
+        Recents.closed(prefs, names)
         Worker.pool.execute {
             val manager = getSystemService(ActivityManager::class.java)
             names.forEach { runCatching { manager.killBackgroundProcesses(it) } }
@@ -918,7 +935,7 @@ class MyTvActivity : Activity(), Link.Listener {
         if (app.component.packageName == PRIME_VIDEO) PrimeGate.allow()
         val category = if (app.leanback) Intent.CATEGORY_LEANBACK_LAUNCHER else Intent.CATEGORY_LAUNCHER
         val intent = Intent(Intent.ACTION_MAIN).addCategory(category).setComponent(app.component)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+            .addFlags(Recents.startFlags(prefs, app.component.packageName))
         try {
             startActivity(intent)
             noteRecent(app)
@@ -937,16 +954,50 @@ class MyTvActivity : Activity(), Link.Listener {
     // ---- Search ----
 
     private fun onKey(key: Keys.Key) {
-        query = when (key.action) {
-            Keys.Action.CHAR -> (query + key.label).take(MAX_QUERY)
-            Keys.Action.SPACE -> if (query.isEmpty()) query else "$query "
-            Keys.Action.DELETE -> query.dropLast(1)
-            Keys.Action.CLEAR -> ""
-        }
-        searchQuery.text = query.ifEmpty { getString(R.string.search_placeholder) }
-        searchQuery.alpha = if (query.isEmpty()) 0.55f else 1f
+        setQuery(
+            when (key.action) {
+                Keys.Action.CHAR -> (query + key.label).take(MAX_QUERY)
+                Keys.Action.SPACE -> if (query.isEmpty()) query else "$query "
+                Keys.Action.DELETE -> query.dropLast(1)
+                Keys.Action.CLEAR -> ""
+            },
+        )
+        spoken = false
         main.removeCallbacks(runSearch)
         main.postDelayed(runSearch, SEARCH_PAUSE_MS)
+    }
+
+    private fun setQuery(text: String) {
+        query = text
+        searchQuery.text = query.ifEmpty { getString(R.string.search_placeholder) }
+        searchQuery.alpha = if (query.isEmpty()) 0.55f else 1f
+    }
+
+    /** The voice button: the TV's own listening screen, the same one the remote's mic button opens. */
+    private fun listen() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            .putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_prompt))
+            .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        try {
+            startActivityForResult(intent, VOICE_REQUEST)
+        } catch (_: ActivityNotFoundException) {
+            showNote(getString(R.string.voice_missing))
+        } catch (_: SecurityException) {
+            showNote(getString(R.string.voice_missing))
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != VOICE_REQUEST || resultCode != RESULT_OK) return
+        val heard = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.trim().orEmpty()
+        if (heard.isEmpty()) return
+        setQuery(heard.take(MAX_QUERY))
+        spoken = true
+        main.removeCallbacks(runSearch)
+        search()
     }
 
     private fun search() {
@@ -971,6 +1022,8 @@ class MyTvActivity : Activity(), Link.Listener {
         searchNone.text = message
         searchNone.visibility = if (list.isEmpty() && message != null) View.VISIBLE else View.GONE
         if (zone == Zone.SIDE && list.isEmpty()) setZone(Zone.MAIN)
+        if (spoken && list.isNotEmpty() && page == Page.SEARCH) setZone(Zone.SIDE)
+        spoken = false
     }
 
     // ---- Style ----
@@ -1183,7 +1236,7 @@ class MyTvActivity : Activity(), Link.Listener {
 
         const val ALL_COLS = 6
         const val ALL_ROWS = 2
-        const val ALL_HEAD = 92
+        const val ALL_HEAD = 104
         const val QUICK_MS = 200L
         const val RETURN_MS = 360L
         const val RESULT_COLS = 5
@@ -1194,6 +1247,7 @@ class MyTvActivity : Activity(), Link.Listener {
         const val FLOOR_PX = 300f
         const val SEARCH_PAUSE_MS = 380L
         const val NOTE_MS = 2_400L
+        const val VOICE_REQUEST = 7
         const val REFRESH_MS = 5 * 60 * 1000L
         const val FADE_MS = 900L
         const val ROTATE_FADE_MS = 4_000L

@@ -264,7 +264,11 @@ class Tiles(
             .setDuration(Motion.ms(GLIDE_MS)).setStartDelay(0).setInterpolator(Motion.SETTLE).withEndAction(null)
     }
 
-    /** Keeps the focused tile in view, with the next one showing past it. */
+    /**
+     * Keeps the focused tile in view, with the next one showing past it. When a tile can't clear
+     * both margins at once, its leading edge wins. Testing the far edge last let a row a few pixels
+     * too tall flip between the two answers, so the grid hopped up and down at every step.
+     */
     private fun scrollToFocus(animate: Boolean) {
         val horizontal = cols == ROW
         val span = if (horizontal) viewport.width else viewport.height
@@ -273,11 +277,10 @@ class Tiles(
         val length = if (horizontal) width else cellHeight
         val margin = if (horizontal) left else top
         val ahead = if (horizontal && focused < size - 1) width / 2 else 0
-        val target = when {
-            start + scroll < margin -> margin - start
-            start + scroll + length + ahead > span - margin -> span - margin - length - ahead - start
-            else -> scroll
-        }.coerceAtMost(0f)
+        var target = scroll
+        if (start + target + length + ahead > span - margin) target = span - margin - length - ahead - start
+        if (start + target < margin) target = margin - start
+        target = target.coerceAtMost(0f)
         if (target == scroll) return
         scroll = target
         if (!animate) {

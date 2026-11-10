@@ -277,10 +277,17 @@
         android:alpha="0"
         android:visibility="invisible">
 
+        <com.shivansh.mytv.ui.Mic
+            android:id="@+id/voice"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="48dp"
+            android:layout_marginTop="76dp" />
+
         <TextView
             android:id="@+id/search_query"
             style="@style/Heading"
-            android:layout_marginStart="48dp"
+            android:layout_marginStart="94dp"
             android:layout_marginTop="80dp"
             android:alpha="0.55"
             android:text="@string/search_placeholder"

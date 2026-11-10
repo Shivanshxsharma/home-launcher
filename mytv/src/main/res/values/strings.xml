@@ -44,6 +44,9 @@
     <string name="recent_hint">OK opens  ·  Up closes the app  ·  Down for Clear all</string>
     <string name="recent_clear">Clear all</string>
     <string name="note_recent_cleared">Recent apps cleared and closed</string>
+    <string name="voice_label">Voice search</string>
+    <string name="voice_prompt">Say a film or show</string>
+    <string name="voice_missing">Voice search isn\'t available on this TV</string>
     <string name="apps_key_label">MY TV: remote buttons</string>
     <string name="apps_key_description">Lets the remote\'s Apps and Prime buttons do what you chose in MY TV. It catches the Apps button and sees the names of apps as they open, but never what is on screen.</string>
     <string name="menu_row_add">Add to first row</string>

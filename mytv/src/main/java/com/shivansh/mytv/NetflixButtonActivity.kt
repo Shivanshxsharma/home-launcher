@@ -14,8 +14,9 @@ class NetflixButtonActivity : Activity() {
         super.onCreate(savedInstanceState)
         val intent = packageManager.getLeanbackLaunchIntentForPackage(YOUTUBE) ?: packageManager.getLaunchIntentForPackage(YOUTUBE)
         if (intent != null) {
-            startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED))
-            intent.component?.let { Recents.note(getSharedPreferences("mytv", MODE_PRIVATE), it.flattenToShortString()) }
+            val prefs = getSharedPreferences("mytv", MODE_PRIVATE)
+            startActivity(intent.addFlags(Recents.startFlags(prefs, YOUTUBE)))
+            intent.component?.let { Recents.note(prefs, it.flattenToShortString()) }
         }
         finish()
     }

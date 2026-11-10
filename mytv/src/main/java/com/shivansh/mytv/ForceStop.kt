@@ -1,7 +1,6 @@
 package com.shivansh.mytv
 
 import android.os.Process
-import android.util.Base64
 import android.util.Log
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
@@ -9,31 +8,29 @@ import java.io.DataInputStream
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream
-import java.math.BigInteger
+import java.net.ConnectException
 import java.net.InetSocketAddress
 import java.net.Socket
-import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.KeyPairGenerator
-import java.security.interfaces.RSAPublicKey
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import java.util.concurrent.Executors
 import javax.crypto.Cipher
 
 /**
- * Really stops apps, as Settings' Force stop does. Android reserves that for system apps, and the
- * kill an ordinary app may ask for spares anything keeping a service alive, so this goes through
- * the box's own debugging link: a small client for adb's protocol, talking to the adb daemon on
- * this same box. The TV then asks the user to allow MY TV's key. On the Mi Box that prompt closes
- * itself after five seconds, allowing the key once without saving it, and the answer can go to
- * another connection, so nothing works until the user ticks Always allow in those five seconds.
+ * Really stops apps, as Settings' Force stop does, when the TV lets it. Android reserves that for
+ * system apps, so this goes through the box's own debugging link: a small client for adb's
+ * protocol, talking to the adb daemon on this same box.
  *
- * It can run exactly one thing, `am force-stop`, for well-formed package names. If the link is off
- * or refused, nothing happens here, and the ordinary kill already done has to be enough.
+ * It only ever signs with MY TV's key and never offers it, so the TV never shows its debugging
+ * prompt. If the user hasn't allowed the key (and the Mi Box forgets allowed keys when it
+ * restarts), nothing happens here and the ordinary close already done has to be enough.
+ *
+ * It can run exactly one thing, `am force-stop`, for well-formed package names.
  */
 class ForceStop(private val dir: File) {
     private val worker = Executors.newSingleThreadExecutor { task ->
@@ -43,32 +40,28 @@ class ForceStop(private val dir: File) {
         }, "force-stop").apply { isDaemon = true }
     }
 
-    /**
-     * The key has been offered, so the prompt isn't raised on every card. Later tries only sign,
-     * which starts working the moment the user has chosen Always allow.
-     */
-    @Volatile
-    private var offered = false
-
-    /** The switcher opened: one more offer is fine. */
-    fun allowOffer() {
-        offered = false
-    }
-
     fun stop(packages: List<String>) {
         val names = packages.filter { NAME.matches(it) }
         if (names.isEmpty()) return
         worker.execute {
             try {
-                try {
-                    run(names)
-                } catch (_: SocketTimeoutException) {
-                    // The prompt has gone. If Always allow was ticked, the key now simply works.
-                    run(names)
-                }
+                attempt(names)
                 Log.i(TAG, "Force stopped $names")
             } catch (e: Exception) {
                 Log.w(TAG, "Couldn't force stop: $e")
+            }
+        }
+    }
+
+    private fun attempt(names: List<String>) {
+        var tries = 0
+        while (true) {
+            try {
+                return run(names)
+            } catch (e: ConnectException) {
+                // Just after the TV starts, its debugging link takes a little while to come up.
+                if (++tries >= TRIES) throw e
+                Thread.sleep(BOOT_WAIT_MS)
             }
         }
     }
@@ -78,29 +71,18 @@ class ForceStop(private val dir: File) {
         Socket().use { socket ->
             socket.connect(InetSocketAddress(HOST, PORT), CONNECT_MS)
             socket.tcpNoDelay = true
-            // Long enough for someone to answer the prompt on the TV.
-            socket.soTimeout = PROMPT_MS
+            socket.soTimeout = COMMAND_MS
             val input = DataInputStream(BufferedInputStream(socket.getInputStream()))
             val out = BufferedOutputStream(socket.getOutputStream())
             send(out, CNXN, VERSION, MAX_DATA, "host::\u0000".toByteArray())
             authenticate(input, out, keys)
-            socket.soTimeout = COMMAND_MS
             val command = "shell:" + names.joinToString("; ") { "am force-stop $it" } + "\u0000"
             send(out, OPEN, LOCAL_ID, 0, command.toByteArray())
-            while (true) {
-                val message = read(input)
-                when (message.command) {
-                    WRTE -> send(out, OKAY, LOCAL_ID, message.arg0, EMPTY)
-                    CLSE -> {
-                        send(out, CLSE, LOCAL_ID, message.arg0, EMPTY)
-                        return
-                    }
-                }
-            }
+            finish(input, out)
         }
     }
 
-    /** Signs adbd's challenge; a key it doesn't know is then offered, which raises the TV's prompt. */
+    /** Signs adbd's challenge. A second challenge means the key isn't allowed, and that's the end of it. */
     private fun authenticate(input: DataInputStream, out: OutputStream, keys: KeyPair) {
         var signed = false
         while (true) {
@@ -108,14 +90,23 @@ class ForceStop(private val dir: File) {
             when (message.command) {
                 CNXN -> return
                 AUTH -> if (message.arg0 == AUTH_TOKEN) {
-                    if (signed) {
-                        if (offered) throw IOException("Waiting for Always allow")
-                        offered = true
-                        send(out, AUTH, AUTH_PUBLIC_KEY, 0, publicKey(keys.public as RSAPublicKey))
-                    } else {
-                        signed = true
-                        send(out, AUTH, AUTH_SIGNATURE, 0, sign(message.data, keys))
-                    }
+                    if (signed) throw IOException("MY TV's key isn't allowed")
+                    signed = true
+                    send(out, AUTH, AUTH_SIGNATURE, 0, sign(message.data, keys))
+                }
+            }
+        }
+    }
+
+    /** Answers the shell's output until it closes. */
+    private fun finish(input: DataInputStream, out: OutputStream) {
+        while (true) {
+            val message = read(input)
+            when (message.command) {
+                WRTE -> send(out, OKAY, LOCAL_ID, message.arg0, EMPTY)
+                CLSE -> {
+                    send(out, CLSE, LOCAL_ID, message.arg0, EMPTY)
+                    return
                 }
             }
         }
@@ -177,38 +168,14 @@ class ForceStop(private val dir: File) {
         }
     }
 
-    /** The key in adb's own format: base64 of its Montgomery form, then a name for the prompt. */
-    private fun publicKey(key: RSAPublicKey): ByteArray {
-        val word = BigInteger.ONE.shiftLeft(32)
-        val r = BigInteger.ONE.shiftLeft(KEY_WORDS * 32)
-        var n = key.modulus
-        var rr = r.modPow(BigInteger.valueOf(2), n)
-        val n0inv = n.remainder(word).modInverse(word).negate().toInt()
-        val modulus = IntArray(KEY_WORDS)
-        val squared = IntArray(KEY_WORDS)
-        for (i in 0 until KEY_WORDS) {
-            val a = rr.divideAndRemainder(word)
-            rr = a[0]
-            squared[i] = a[1].toInt()
-            val b = n.divideAndRemainder(word)
-            n = b[0]
-            modulus[i] = b[1].toInt()
-        }
-        val bytes = ByteBuffer.allocate(8 + KEY_WORDS * 8 + 4).order(ByteOrder.LITTLE_ENDIAN)
-        bytes.putInt(KEY_WORDS).putInt(n0inv)
-        modulus.forEach { bytes.putInt(it) }
-        squared.forEach { bytes.putInt(it) }
-        bytes.putInt(key.publicExponent.toInt())
-        return (Base64.encodeToString(bytes.array(), Base64.NO_WRAP) + " MY TV launcher\u0000").toByteArray()
-    }
-
     private companion object {
         const val TAG = "ForceStop"
         const val HOST = "127.0.0.1"
         const val PORT = 5555
         const val CONNECT_MS = 1_500
-        const val PROMPT_MS = 9_000
         const val COMMAND_MS = 15_000
+        const val TRIES = 3
+        const val BOOT_WAIT_MS = 4_000L
         const val HEADER = 24
         const val MAX_READ = 1024 * 1024
         const val VERSION = 0x01000000
@@ -217,7 +184,6 @@ class ForceStop(private val dir: File) {
         const val KEY_WORDS = 64
         const val AUTH_TOKEN = 1
         const val AUTH_SIGNATURE = 2
-        const val AUTH_PUBLIC_KEY = 3
         const val CNXN = 0x4e584e43
         const val AUTH = 0x48545541
         const val OPEN = 0x4e45504f

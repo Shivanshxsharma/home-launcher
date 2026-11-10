@@ -96,6 +96,7 @@ class Apps(private val context: Context, private val width: Int, private val hei
 object Recents {
     private const val KEY = "recent_apps"
     private const val MAX = 12
+    private const val CLOSED = "closed_apps"
 
     fun keys(prefs: SharedPreferences) = prefs.getString(KEY, null)?.split('|').orEmpty().filter { it.isNotEmpty() }
 
@@ -104,6 +105,18 @@ object Recents {
     fun forget(prefs: SharedPreferences, key: String) = save(prefs, keys(prefs).filter { it != key })
 
     fun clear(prefs: SharedPreferences) = prefs.edit().remove(KEY).apply()
+
+    /** Apps closed in the switcher. Their next start is a fresh one, as after swiping an app away on a phone. */
+    fun closed(prefs: SharedPreferences, packages: List<String>) =
+        prefs.edit().putStringSet(CLOSED, prefs.getStringSet(CLOSED, null).orEmpty() + packages).apply()
+
+    /** How to start [pkg]: from the beginning if it was closed, otherwise back where it was left. */
+    fun startFlags(prefs: SharedPreferences, pkg: String): Int {
+        val closed = prefs.getStringSet(CLOSED, null).orEmpty()
+        if (pkg !in closed) return Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+        prefs.edit().putStringSet(CLOSED, closed - pkg).apply()
+        return Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    }
 
     private fun save(prefs: SharedPreferences, keys: List<String>) = prefs.edit().putString(KEY, keys.joinToString("|")).apply()
 }

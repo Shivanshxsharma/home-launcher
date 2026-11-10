@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
+import kotlin.math.min
 import android.view.View
 import com.shivansh.mytv.R
 
@@ -129,5 +130,55 @@ class Keys(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private companion object {
         const val COLS = 6
         const val ROWS = 7
+    }
+}
+
+/**
+ * The voice button beside the search line: a round key the size of the keyboard's, with a
+ * microphone drawn in. Lit, it turns white like a lit key and lifts a touch.
+ */
+class Mic(context: Context, attrs: AttributeSet?) : View(context, attrs) {
+    private val disc = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val ink = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeCap = Paint.Cap.ROUND }
+    private val rect = RectF()
+    private var lit = false
+
+    init {
+        isFocusable = false
+        contentDescription = context.getString(R.string.voice_label)
+    }
+
+    fun setLit(on: Boolean) {
+        if (lit == on) return
+        lit = on
+        val scale = if (on) LIFT else 1f
+        animate().scaleX(scale).scaleY(scale).setDuration(Motion.ms(LIFT_MS)).setStartDelay(0).setInterpolator(Motion.LIFT)
+        invalidate()
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        val d = min(width, height).toFloat()
+        val u = d / 64f
+        val cx = width / 2f
+        val cy = height / 2f
+        disc.color = if (lit) Palette.INK else 0x1FFFFFFF
+        canvas.drawCircle(cx, cy, d / 2f, disc)
+        val color = if (lit) Palette.DARK else Palette.INK
+        // The capsule.
+        ink.style = Paint.Style.FILL
+        ink.color = color
+        rect.set(cx - 6.5f * u, cy - 17f * u, cx + 6.5f * u, cy + 4f * u)
+        canvas.drawRoundRect(rect, 6.5f * u, 6.5f * u, ink)
+        // The cradle round it, and the stand.
+        ink.style = Paint.Style.STROKE
+        ink.strokeWidth = 3f * u
+        rect.set(cx - 11.5f * u, cy - 14f * u, cx + 11.5f * u, cy + 9f * u)
+        canvas.drawArc(rect, 0f, 180f, false, ink)
+        canvas.drawLine(cx, cy + 9f * u, cx, cy + 15.5f * u, ink)
+    }
+
+    private companion object {
+        const val LIFT = 1.1f
+        const val LIFT_MS = 420L
     }
 }

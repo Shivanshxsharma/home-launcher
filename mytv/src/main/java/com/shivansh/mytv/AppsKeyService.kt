@@ -76,7 +76,7 @@ class AppsKeyService : AccessibilityService() {
         if (PrimeGate.allowed()) return
         val choice = prefs.getString(PRIME_BUTTON, null)?.takeIf { it != PRIME_VIDEO } ?: return
         val intent = packageManager.getLeanbackLaunchIntentForPackage(choice) ?: packageManager.getLaunchIntentForPackage(choice) ?: return
-        startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED))
+        startActivity(intent.addFlags(Recents.startFlags(prefs, choice)))
         intent.component?.let { Recents.note(prefs, it.flattenToShortString()) }
         forceStop.stop(listOf(PRIME_VIDEO))
         inPrime = false
